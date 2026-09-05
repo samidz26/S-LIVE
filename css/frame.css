@@ -1,0 +1,99 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #0f172a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.phone-frame {
+    position: relative;
+    width: 380px;
+    height: 675px;
+    background: #05070c;
+    border: 4px solid #334155;
+    border-radius: 36px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+}
+
+@keyframes luxuryGlow {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes neonPulse {
+    0%, 100% {
+        opacity: 0.6;
+        box-shadow:
+            0 0 4px rgba(245, 158, 11, 0.4),
+            inset 0 0 2px rgba(245, 158, 11, 0.2);
+    }
+
+    50% {
+        opacity: 1;
+        box-shadow:
+            0 0 10px rgba(245, 158, 11, 0.8),
+            0 0 20px rgba(245, 158, 11, 0.4);
+    }
+}
+
+.top-section {
+    height: 11.458%;
+    background: linear-gradient(
+        270deg,
+        #1e1b4b,
+        #31103c,
+        #111827,
+        #451a03
+    );
+    background-size: 400% 400%;
+    border-bottom: 1.5px solid #f59e0b;
+
+    animation:
+        luxuryGlow 10s ease infinite,
+        neonPulse 3s ease-in-out infinite;
+}
+
+.middle-section {
+    height: 57.291%;
+    background-color: rgba(59, 130, 246, 0.03);
+    border-bottom: 1.5px solid #f59e0b;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+
+    /* مساحة الصفحات والألعاب */
+    position: relative;
+    overflow: hidden;
+}
+
+.bottom-section {
+    flex: 1;
+
+    background: linear-gradient(
+        270deg,
+        #111827,
+        #451a03,
+        #1e1b4b,
+        #31103c
+    );
+
+    background-size: 400% 400%;
+    animation: luxuryGlow 10s ease infinite;
+}
