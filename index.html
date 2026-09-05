@@ -2,36 +2,66 @@
 <html lang="ar" dir="rtl">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>S-LIVE</title>
 
-    <link rel="stylesheet" href="css/frame.css">
-    <link rel="stylesheet" href="pages/connection/connection.css">
+    <!-- الإطار العام -->
+    <link
+        rel="stylesheet"
+        href="css/frame.css"
+    >
+
+    <!-- صفحات المشروع -->
+    <link
+        rel="stylesheet"
+        href="pages/connection/connection.css"
+    >
+
 </head>
 
 <body>
 
+    <!-- =====================================
+         S-LIVE PHONE FRAME
+    ====================================== -->
+
     <div class="phone-frame">
 
-        <!-- الإطار الثابت -->
+        <!-- القسم العلوي الثابت -->
         <div class="top-section"></div>
 
-        <!-- مساحة العرض -->
-        <div class="middle-section" id="app-screen">
 
-            <!-- صفحة الاتصال -->
-            <div id="connection-container"></div>
+        <!-- =================================
+             مساحة عرض الصفحات والألعاب
+        ================================== -->
+
+        <div
+            class="middle-section"
+            id="app-screen"
+        >
+
+            <!--
+                الصفحات سيتم تحميلها هنا
+                بواسطة app.js
+            -->
 
         </div>
 
-        <!-- الإطار الثابت -->
+
+        <!-- القسم السفلي الثابت -->
         <div class="bottom-section"></div>
 
     </div>
 
-    <script src="pages/connection/connection.js"></script>
+
+    <!-- النظام الرئيسي -->
     <script src="js/app.js"></script>
 
 </body>
