@@ -1,1 +1,316 @@
+/* =========================================
+   S-LIVE - CONNECTION PAGE
+   هذا الملف خاص بصفحة الاتصال فقط
+========================================= */
 
+.connection-page {
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    padding: 25px;
+
+    color: #ffffff;
+
+    font-family:
+        Arial,
+        Tahoma,
+        sans-serif;
+
+    position: relative;
+}
+
+
+/* =========================================
+   أيقونة الاتصال
+========================================= */
+
+.connection-icon {
+    width: 70px;
+    height: 70px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 34px;
+
+    border: 1px solid rgba(245, 158, 11, 0.7);
+    border-radius: 20px;
+
+    background: rgba(245, 158, 11, 0.08);
+
+    box-shadow:
+        0 0 15px rgba(245, 158, 11, 0.25),
+        inset 0 0 12px rgba(245, 158, 11, 0.08);
+
+    margin-bottom: 15px;
+}
+
+
+/* =========================================
+   العنوان
+========================================= */
+
+.connection-page h1 {
+    font-size: 28px;
+
+    letter-spacing: 2px;
+
+    margin-bottom: 5px;
+
+    color: #f59e0b;
+
+    text-shadow:
+        0 0 5px rgba(245, 158, 11, 0.7),
+        0 0 15px rgba(245, 158, 11, 0.4);
+}
+
+
+.connection-title {
+    font-size: 15px;
+
+    color: #cbd5e1;
+
+    margin-bottom: 25px;
+}
+
+
+/* =========================================
+   مجموعة الإدخال
+========================================= */
+
+.input-group {
+    width: 100%;
+    max-width: 290px;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+
+    margin-bottom: 18px;
+}
+
+
+.input-group label {
+    font-size: 13px;
+
+    color: #94a3b8;
+
+    text-align: right;
+}
+
+
+.input-group input {
+    width: 100%;
+    height: 48px;
+
+    padding: 0 15px;
+
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    border-radius: 12px;
+
+    outline: none;
+
+    background: rgba(15, 23, 42, 0.85);
+
+    color: #ffffff;
+
+    font-size: 15px;
+
+    text-align: right;
+
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.25s ease,
+        background 0.25s ease;
+}
+
+
+.input-group input::placeholder {
+    color: #64748b;
+}
+
+
+.input-group input:focus {
+    border-color: #f59e0b;
+
+    background: rgba(15, 23, 42, 0.95);
+
+    box-shadow:
+        0 0 8px rgba(245, 158, 11, 0.35),
+        inset 0 0 8px rgba(245, 158, 11, 0.05);
+}
+
+
+/* =========================================
+   زر الاتصال
+========================================= */
+
+#connect-btn {
+    width: 100%;
+    max-width: 290px;
+
+    height: 48px;
+
+    border: 1px solid #f59e0b;
+    border-radius: 12px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #451a03,
+            #78350f,
+            #451a03
+        );
+
+    background-size: 200% 200%;
+
+    color: #ffffff;
+
+    font-size: 15px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 0 10px rgba(245, 158, 11, 0.25);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+#connect-btn:hover {
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 0 15px rgba(245, 158, 11, 0.55),
+        0 0 30px rgba(245, 158, 11, 0.15);
+}
+
+
+#connect-btn:active {
+    transform: scale(0.98);
+}
+
+
+/* =========================================
+   حالة الاتصال
+========================================= */
+
+.status {
+    margin-top: 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    min-height: 24px;
+
+    color: #94a3b8;
+
+    font-size: 13px;
+}
+
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+
+    border-radius: 50%;
+
+    background: #64748b;
+
+    box-shadow:
+        0 0 5px rgba(100, 116, 139, 0.5);
+
+    transition:
+        background 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+
+/* جاري الاتصال */
+
+.status-dot.connecting {
+    background: #f59e0b;
+
+    box-shadow:
+        0 0 8px rgba(245, 158, 11, 0.9);
+
+    animation: connectionPulse 1s infinite;
+}
+
+
+/* خطأ */
+
+.status-dot.error {
+    background: #ef4444;
+
+    box-shadow:
+        0 0 8px rgba(239, 68, 68, 0.8);
+}
+
+
+/* نجاح الاتصال */
+
+.status-dot.connected {
+    background: #22c55e;
+
+    box-shadow:
+        0 0 8px rgba(34, 197, 94, 0.9);
+}
+
+
+@keyframes connectionPulse {
+
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: scale(0.8);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+}
+
+
+/* =========================================
+   شاشات الهاتف الصغيرة
+========================================= */
+
+@media (max-height: 600px) {
+
+    .connection-page {
+        padding: 15px;
+    }
+
+    .connection-icon {
+        width: 55px;
+        height: 55px;
+
+        font-size: 27px;
+
+        margin-bottom: 8px;
+    }
+
+    .connection-page h1 {
+        font-size: 23px;
+    }
+
+    .connection-title {
+        margin-bottom: 15px;
+    }
+
+  }
