@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 /* =========================================
-   تحميل الصفحات داخل مساحة العرض
+   تحميل الصفحة
 ========================================= */
 
 async function loadPage(pageName) {
@@ -38,6 +38,13 @@ async function loadPage(pageName) {
 
         appScreen.innerHTML = html;
 
+        /*
+         * بعد تحميل HTML
+         * نقوم بتحميل JavaScript الخاص بالصفحة
+         */
+
+        loadPageScript(pageName);
+
         console.log(
             `S-LIVE: ${pageName} loaded successfully`
         );
@@ -47,21 +54,53 @@ async function loadPage(pageName) {
         console.error("S-LIVE:", error);
 
         appScreen.innerHTML = `
-            <div style="
-                width:100%;
-                height:100%;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                color:#ef4444;
-                font-family:Arial,Tahoma,sans-serif;
-                text-align:center;
-                padding:20px;
-            ">
+            <div class="page-load-error">
                 حدث خطأ أثناء تحميل الصفحة
             </div>
         `;
 
     }
+
+}
+
+
+/* =========================================
+   تحميل JavaScript الخاص بالصفحة
+========================================= */
+
+function loadPageScript(pageName) {
+
+    const oldScript =
+        document.getElementById("active-page-script");
+
+    if (oldScript) {
+        oldScript.remove();
+    }
+
+    const script =
+        document.createElement("script");
+
+    script.id = "active-page-script";
+
+    script.src =
+        `pages/${pageName}/${pageName}.js`;
+
+    script.onload = () => {
+
+        console.log(
+            `S-LIVE: ${pageName}.js loaded`
+        );
+
+    };
+
+    script.onerror = () => {
+
+        console.error(
+            `S-LIVE: Failed to load ${pageName}.js`
+        );
+
+    };
+
+    document.body.appendChild(script);
 
 }
