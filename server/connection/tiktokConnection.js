@@ -80,9 +80,13 @@ async function connectToTikTok(username) {
 
 
     const connection =
-        new TikTokLiveConnection(
-            cleanUsername
-        );
+    new TikTokLiveConnection(
+        cleanUsername,
+        {
+            processInitialData: false,
+            fetchRoomInfoOnConnect: true
+        }
+    );
 
 
     /*
