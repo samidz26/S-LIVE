@@ -162,55 +162,139 @@ router.get("/events", (req, res) => {
         "keep-alive"
     );
 
-    /*
-     * يساعد Render / proxies
-     * على عدم تخزين الاستجابة.
-     */
-
     res.setHeader(
         "X-Accel-Buffering",
         "no"
     );
 
 
-    /*
-     * فتح قناة SSE
-     */
+    /* =========================================
+       SSE CONNECTED
+    ========================================= */
 
     res.write(
         ": connected\n\n"
     );
 
 
-    const sendMember =
-        (member) => {
+    /* =========================================
+       GENERIC EVENT SENDER
+    ========================================= */
+
+    const sendEvent =
+        (eventName) =>
+        (data) => {
 
             try {
 
                 res.write(
-                    `event: member\n` +
-                    `data: ${JSON.stringify(member)}\n\n`
+                    `event: ${eventName}\n` +
+                    `data: ${JSON.stringify(data)}\n\n`
                 );
 
             } catch (error) {
 
                 console.error(
-                    "S-LIVE SSE member error:",
+                    `S-LIVE SSE ${eventName} error:`,
                     error
                 );
             }
         };
 
 
+    /* =========================================
+       CREATE EVENT HANDLERS
+    ========================================= */
+
+    const sendMember =
+        sendEvent("member");
+
+    const sendChat =
+        sendEvent("chat");
+
+    const sendGift =
+        sendEvent("gift");
+
+    const sendLike =
+        sendEvent("like");
+
+    const sendFollow =
+        sendEvent("follow");
+
+    const sendSubscribe =
+        sendEvent("subscribe");
+
+    const sendShare =
+        sendEvent("share");
+
+    const sendConnected =
+        sendEvent("connected");
+
+    const sendDisconnected =
+        sendEvent("disconnected");
+
+    const sendError =
+        sendEvent("error");
+
+
+    /* =========================================
+       REGISTER EVENTS
+    ========================================= */
+
     liveEvents.on(
         "member",
         sendMember
     );
 
+    liveEvents.on(
+        "chat",
+        sendChat
+    );
 
-    /*
-     * إبقاء الاتصال حياً
-     */
+    liveEvents.on(
+        "gift",
+        sendGift
+    );
+
+    liveEvents.on(
+        "like",
+        sendLike
+    );
+
+    liveEvents.on(
+        "follow",
+        sendFollow
+    );
+
+    liveEvents.on(
+        "subscribe",
+        sendSubscribe
+    );
+
+    liveEvents.on(
+        "share",
+        sendShare
+    );
+
+    liveEvents.on(
+        "connected",
+        sendConnected
+    );
+
+    liveEvents.on(
+        "disconnected",
+        sendDisconnected
+    );
+
+    liveEvents.on(
+        "error",
+        sendError
+    );
+
+
+    /* =========================================
+       KEEP ALIVE
+    ========================================= */
 
     const keepAlive =
         setInterval(() => {
@@ -231,9 +315,9 @@ router.get("/events", (req, res) => {
         }, 20000);
 
 
-    /*
-     * عند إغلاق المتصفح
-     */
+    /* =========================================
+       CLEANUP
+    ========================================= */
 
     req.on(
         "close",
@@ -243,12 +327,63 @@ router.get("/events", (req, res) => {
                 keepAlive
             );
 
+
             liveEvents.off(
                 "member",
                 sendMember
             );
 
-            res.end();
+            liveEvents.off(
+                "chat",
+                sendChat
+            );
+
+            liveEvents.off(
+                "gift",
+                sendGift
+            );
+
+            liveEvents.off(
+                "like",
+                sendLike
+            );
+
+            liveEvents.off(
+                "follow",
+                sendFollow
+            );
+
+            liveEvents.off(
+                "subscribe",
+                sendSubscribe
+            );
+
+            liveEvents.off(
+                "share",
+                sendShare
+            );
+
+            liveEvents.off(
+                "connected",
+                sendConnected
+            );
+
+            liveEvents.off(
+                "disconnected",
+                sendDisconnected
+            );
+
+            liveEvents.off(
+                "error",
+                sendError
+            );
+
+
+            try {
+                res.end();
+            } catch (error) {
+                // الاتصال مغلق بالفعل
+            }
         }
     );
 });
