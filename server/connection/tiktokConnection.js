@@ -63,21 +63,32 @@ async function connectToTikTok(username) {
                 return;
             }
 
-            const member = {
-                uniqueId:
-                    user.uniqueId || "",
+            const profilePictures =
+    user.userDetails?.profilePictureUrls || [];
 
-                nickname:
-                    user.nickname ||
-                    user.uniqueId ||
-                    "TikTok User",
+const member = {
 
-                profilePictureUrl:
-                    user.profilePictureUrl || "",
+    uniqueId:
+        user.uniqueId || "",
 
-                joinedAt:
-                    Date.now()
-            };
+    nickname:
+        user.nickname ||
+        user.uniqueId ||
+        "TikTok User",
+
+    profilePictureUrl:
+        user.profilePictureUrl ||
+        profilePictures[0] ||
+        profilePictures[1] ||
+        profilePictures[2] ||
+        profilePictures[3] ||
+        "",
+
+    profilePictures,
+
+    joinedAt:
+        Date.now()
+};
 
             console.log(
                 `S-LIVE: New member -> ${member.nickname} (@${member.uniqueId})`
