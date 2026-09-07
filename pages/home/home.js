@@ -1,502 +1,368 @@
+(function () {
+"use strict";
+
+console.log("S-LIVE HOME JS loaded");
+
+let eventSource = null;
+
+const liveAccount =
+    document.getElementById("live-account");
+
+const accountButton =
+    document.getElementById("live-account-button");
+
+const liveDropdown =
+    document.getElementById("live-dropdown");
+
+const disconnectButton =
+    document.getElementById("disconnect-button");
+
+const liveUsername =
+    document.getElementById("live-username");
+
+const liveProfileImage =
+    document.getElementById("live-profile-image");
+
+const liveEventCard =
+    document.getElementById("live-event-card");
+
+const memberProfile =
+    document.getElementById("member-profile");
+
+const memberName =
+    document.getElementById("member-name");
+
+const memberUsername =
+    document.getElementById("member-username");
+
+
 /* =========================================
-   S-LIVE HOME
+   ACCOUNT
 ========================================= */
 
-(function () {
+function setupAccount() {
 
-    "use strict";
+    const username =
+        localStorage.getItem("s_live_username");
 
-    console.log("S-LIVE HOME JS loaded");
-
-
-    /* =========================================
-       ELEMENTS
-    ========================================= */
-
-    const account =
-        document.getElementById("live-account");
-
-    const accountButton =
-        document.getElementById("live-account-button");
-
-    const dropdown =
-        document.getElementById("live-dropdown");
-
-    const disconnectButton =
-        document.getElementById("disconnect-button");
-
-    const liveUsername =
-        document.getElementById("live-username");
-
-    const liveProfileImage =
-        document.getElementById("live-profile-image");
-
-    const eventCard =
-        document.getElementById("live-event-card");
-
-    const memberProfile =
-        document.getElementById("member-profile");
-
-    const memberName =
-        document.getElementById("member-name");
-
-    const memberUsername =
-        document.getElementById("member-username");
+    const profilePicture =
+        localStorage.getItem("s_live_profile_picture");
 
 
-    /* =========================================
-       LIVE ACCOUNT
-    ========================================= */
+    if (username && liveUsername) {
 
-    function setupAccount() {
+        liveUsername.textContent =
+            username.startsWith("@")
+                ? username
+                : "@" + username;
+    }
 
-        if (!account || !accountButton || !dropdown) {
 
-            console.error(
-                "S-LIVE: عناصر حساب اللايف غير موجودة"
-            );
+    if (profilePicture && liveProfileImage) {
 
-            return;
+        liveProfileImage.src =
+            profilePicture;
+    }
+
+
+    if (accountButton) {
+
+        accountButton.addEventListener(
+            "click",
+            function (event) {
+
+                event.stopPropagation();
+
+                if (!liveAccount) return;
+
+                liveAccount.classList.toggle("open");
+            }
+        );
+    }
+
+
+    document.addEventListener(
+        "click",
+        function (event) {
+
+            if (
+                liveAccount &&
+                !liveAccount.contains(event.target)
+            ) {
+                liveAccount.classList.remove("open");
+            }
         }
+    );
 
 
-        const username =
-            localStorage.getItem(
-                "s_live_username"
-            );
+    if (disconnectButton) {
 
-
-        const profilePicture =
-            localStorage.getItem(
-                "s_live_profile_picture"
-            );
-
-
-        if (username && liveUsername) {
-
-            liveUsername.textContent =
-                "@" +
-                username.replace(/^@/, "");
-        }
-
-
-        if (
-            profilePicture &&
-            liveProfileImage
-        ) {
-
-            liveProfileImage.src =
-                profilePicture;
-        }
-
-
-        /* فتح / إغلاق القائمة */
-
-        accountButton.onclick =
+        disconnectButton.addEventListener(
+            "click",
             function (event) {
 
                 event.preventDefault();
 
                 event.stopPropagation();
 
-
-                const isOpen =
-                    account.classList.contains(
-                        "open"
-                    );
-
-
-                if (isOpen) {
-
-                    closeDropdown();
-
-                } else {
-
-                    openDropdown();
-                }
-            };
+                disconnectLive();
+            }
+        );
+    }
+}
 
 
-        /* إغلاق عند الضغط خارج القائمة */
+/* =========================================
+   DISCONNECT
+========================================= */
 
-        document.addEventListener(
-            "click",
-            function (event) {
+async function disconnectLive() {
 
-                if (
-                    !account.contains(
-                        event.target
-                    )
-                ) {
+    if (liveAccount) {
+        liveAccount.classList.remove("open");
+    }
 
-                    closeDropdown();
+
+    try {
+
+        await fetch(
+            "/api/connection/disconnect",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
                 }
             }
         );
 
+    } catch (error) {
 
-        /* قطع الاتصال */
-
-        if (disconnectButton) {
-
-            disconnectButton.onclick =
-                async function (event) {
-
-                    event.preventDefault();
-
-                    event.stopPropagation();
+        console.error(
+            "Disconnect error:",
+            error
+        );
+    }
 
 
-                    await disconnectLive();
-                };
+    clearSession();
+
+
+    if (
+        window.SLive &&
+        typeof window.SLive.loadPage === "function"
+    ) {
+
+        window.SLive.loadPage("connection");
+
+    } else {
+
+        window.location.reload();
+    }
+}
+
+
+/* =========================================
+   CLEAR SESSION
+========================================= */
+
+function clearSession() {
+
+    localStorage.removeItem(
+        "s_live_username"
+    );
+
+    localStorage.removeItem(
+        "s_live_connected"
+    );
+
+    localStorage.removeItem(
+        "s_live_room_id"
+    );
+
+    localStorage.removeItem(
+        "s_live_profile_picture"
+    );
+}
+
+
+/* =========================================
+   SHOW LAST MEMBER
+========================================= */
+
+function showMember(member) {
+
+    if (!member) return;
+
+
+    const name =
+        member.nickname ||
+        member.name ||
+        member.uniqueId ||
+        member.username ||
+        "زائر";
+
+
+    const username =
+        member.uniqueId ||
+        member.username ||
+        "";
+
+
+    const profilePicture =
+        member.profilePictureUrl ||
+        member.profilePicture ||
+        member.avatar ||
+        member.avatarUrl ||
+        "";
+
+
+    console.log(
+        "New member:",
+        name,
+        profilePicture
+    );
+
+
+    if (memberName) {
+
+        memberName.textContent =
+            name;
+    }
+
+
+    if (memberUsername) {
+
+        memberUsername.textContent =
+            username
+                ? "@" + username
+                : "";
+    }
+
+
+    if (memberProfile) {
+
+        if (profilePicture) {
+
+            memberProfile.src =
+                profilePicture;
         }
+
+        /*
+         * لا نجعل الصورة opacity = 0
+         * حتى لا تختفي بعد الأنيميشن.
+         */
+        memberProfile.style.opacity = "1";
     }
 
 
-    /* =========================================
-       OPEN DROPDOWN
-    ========================================= */
+    if (liveEventCard) {
 
-    function openDropdown() {
-
-        account.classList.add(
-            "open"
+        /*
+         * إظهار العنصر بشكل دائم
+         * بعد أول دخول.
+         */
+        liveEventCard.classList.add(
+            "has-member"
         );
 
-        accountButton.setAttribute(
-            "aria-expanded",
-            "true"
+
+        /*
+         * إعادة تشغيل الأنيميشن فقط
+         * عند دخول شخص جديد.
+         */
+        liveEventCard.classList.remove(
+            "new-member"
         );
 
-        dropdown.setAttribute(
-            "aria-hidden",
-            "false"
-        );
 
-        console.log(
-            "S-LIVE: dropdown opened"
-        );
-    }
+        void liveEventCard.offsetWidth;
 
 
-    /* =========================================
-       CLOSE DROPDOWN
-    ========================================= */
-
-    function closeDropdown() {
-
-        if (!account) return;
-
-        account.classList.remove(
-            "open"
-        );
-
-        accountButton.setAttribute(
-            "aria-expanded",
-            "false"
-        );
-
-        dropdown.setAttribute(
-            "aria-hidden",
-            "true"
+        liveEventCard.classList.add(
+            "new-member"
         );
     }
+}
 
 
-    /* =========================================
-       DISCONNECT
-    ========================================= */
+/* =========================================
+   TIKTOK EVENTS
+========================================= */
 
-    async function disconnectLive() {
+function connectEvents() {
 
-        console.log(
-            "S-LIVE: disconnecting..."
-        );
-
-
-        if (disconnectButton) {
-
-            disconnectButton.disabled =
-                true;
-
-            disconnectButton.textContent =
-                "جاري قطع الاتصال...";
-        }
-
+    if (eventSource) {
 
         try {
-
-            const response =
-                await fetch(
-                    "/api/connection/disconnect",
-                    {
-                        method: "POST",
-
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        }
-                    }
-                );
-
-
-            if (!response.ok) {
-
-                throw new Error(
-                    "فشل قطع الاتصال"
-                );
-            }
-
-
-            console.log(
-                "S-LIVE: disconnected"
-            );
-
-
-        } catch (error) {
-
-            console.error(
-                "S-LIVE disconnect error:",
-                error
-            );
-
-        } finally {
-
-            clearSession();
-
-
-            /*
-             * العودة إلى صفحة الاتصال
-             */
-
-            if (
-                window.SLive &&
-                typeof window.SLive.loadPage ===
-                    "function"
-            ) {
-
-                await window.SLive.loadPage(
-                    "connection"
-                );
-
-            } else {
-
-                window.location.reload();
-            }
-        }
-    }
-
-
-    /* =========================================
-       CLEAR SESSION
-    ========================================= */
-
-    function clearSession() {
-
-        localStorage.removeItem(
-            "s_live_username"
-        );
-
-        localStorage.removeItem(
-            "s_live_connected"
-        );
-
-        localStorage.removeItem(
-            "s_live_room_id"
-        );
-
-        localStorage.removeItem(
-            "s_live_profile_picture"
-        );
-    }
-
-
-    /* =========================================
-       MEMBER IMAGE
-    ========================================= */
-
-    function setMemberImage(url) {
-
-        if (
-            !memberProfile ||
-            !url
-        ) {
-            return;
-        }
-
-
-        memberProfile.onload =
-            function () {
-
-                memberProfile.style.opacity =
-                    "1";
-            };
-
-
-        memberProfile.onerror =
-            function () {
-
-                memberProfile.style.opacity =
-                    "0";
-            };
-
-
-        memberProfile.src =
-            url;
-    }
-
-
-    /* =========================================
-       SHOW MEMBER
-    ========================================= */
-
-    function showMember(member) {
-
-        if (!member) return;
-
-
-        const name =
-            member.nickname ||
-            member.name ||
-            member.uniqueId ||
-            "مستخدم TikTok";
-
-
-        const username =
-            member.uniqueId ||
-            member.username ||
-            "";
-
-
-        const image =
-            member.profilePictureUrl ||
-            member.profilePicture ||
-            member.avatar ||
-            "";
-
-
-        if (memberName) {
-
-            memberName.textContent =
-                name;
-        }
-
-
-        if (memberUsername) {
-
-            memberUsername.textContent =
-                username
-                    ? "@" +
-                      String(username)
-                        .replace(/^@/, "")
-                    : "";
-        }
-
-
-        if (image) {
-
-            setMemberImage(image);
-        }
-
-
-        if (eventCard) {
-
-            eventCard.classList.remove(
-                "new-member"
-            );
-
-
-            void eventCard.offsetWidth;
-
-
-            eventCard.classList.add(
-                "new-member"
-            );
-        }
-    }
-
-
-    /* =========================================
-       SSE
-    ========================================= */
-
-    let eventSource = null;
-
-
-    function connectEvents() {
-
-        if (eventSource) {
-
             eventSource.close();
-        }
-
-
-        eventSource =
-            new EventSource(
-                "/api/connection/events"
-            );
-
-
-        eventSource.addEventListener(
-            "member",
-            function (event) {
-
-                try {
-
-                    const member =
-                        JSON.parse(
-                            event.data
-                        );
-
-
-                    showMember(member);
-
-                } catch (error) {
-
-                    console.error(
-                        "S-LIVE member event error:",
-                        error
-                    );
-                }
-            }
-        );
-
-
-        eventSource.onerror =
-            function () {
-
-                console.warn(
-                    "S-LIVE: SSE connection error"
-                );
-            };
+        } catch (error) {}
     }
 
 
-    /* =========================================
-       CLEANUP
-    ========================================= */
+    eventSource =
+        new EventSource(
+            "/api/connection/events"
+        );
 
-    window.addEventListener(
-        "s-live-cleanup",
-        function () {
 
-            if (eventSource) {
+    eventSource.addEventListener(
+        "member",
+        function (event) {
 
-                eventSource.close();
+            try {
 
-                eventSource = null;
+                const member =
+                    JSON.parse(event.data);
+
+                showMember(member);
+
+            } catch (error) {
+
+                console.error(
+                    "Member event parse error:",
+                    error
+                );
             }
         }
     );
 
 
-    /* =========================================
-       START
-    ========================================= */
+    eventSource.onerror =
+        function () {
 
-    setupAccount();
+            console.log(
+                "S-LIVE event stream reconnecting..."
+            );
+        };
+}
 
-    connectEvents();
 
+/* =========================================
+   CLEANUP
+========================================= */
+
+window.addEventListener(
+    "s-live-cleanup",
+    function () {
+
+        if (eventSource) {
+
+            try {
+                eventSource.close();
+            } catch (error) {}
+
+            eventSource = null;
+        }
+    }
+);
+
+
+/* =========================================
+   START
+========================================= */
+
+setupAccount();
+
+connectEvents();
 
 })();
