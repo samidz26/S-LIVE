@@ -7,7 +7,7 @@ let eventSource = null;
 
 /*
 
-ACCOUNT ELEMENTS
+ACCOUNT
 
 */
 
@@ -16,9 +16,6 @@ document.getElementById("live-account");
 
 const accountButton =
 document.getElementById("live-account-button");
-
-const liveDropdown =
-document.getElementById("live-dropdown");
 
 const disconnectButton =
 document.getElementById("disconnect-button");
@@ -31,7 +28,7 @@ document.getElementById("live-profile-image");
 
 /*
 
-MEMBER ELEMENTS
+MEMBER
 
 */
 
@@ -49,7 +46,7 @@ document.getElementById("member-username");
 
 /*
 
-CENTER EVENT ELEMENTS
+CENTER EVENT
 
 */
 
@@ -86,7 +83,7 @@ let eventIsPlaying = false;
 
 /*
 
-IMAGE HELPER
+IMAGE
 
 */
 
@@ -96,10 +93,6 @@ if (!url) {
     return "";
 }
 
-/*
- * استخدام البروكسي الخاص بالسيرفر
- * لتقليل مشاكل صور TikTok الخارجية.
- */
 return (
     "/api/connection/proxy-image?url=" +
     encodeURIComponent(url)
@@ -109,7 +102,7 @@ return (
 
 /*
 
-GET USER DATA
+USER
 
 */
 
@@ -162,7 +155,7 @@ return (
 
 /*
 
-ACCOUNT
+ACCOUNT SETUP
 
 */
 
@@ -188,7 +181,10 @@ if (username && liveUsername) {
 }
 
 
-if (profilePicture && liveProfileImage) {
+if (
+    profilePicture &&
+    liveProfileImage
+) {
 
     liveProfileImage.src =
         profilePicture;
@@ -241,7 +237,6 @@ if (disconnectButton) {
         function (event) {
 
             event.preventDefault();
-
             event.stopPropagation();
 
             disconnectLive();
@@ -337,7 +332,7 @@ localStorage.removeItem(
 
 /*
 
-SHOW LAST MEMBER
+LAST MEMBER
 
 */
 
@@ -351,20 +346,11 @@ if (!member) {
 const name =
     getUserName(member);
 
-
 const username =
     getUserUsername(member);
 
-
 const profilePicture =
     getUserProfile(member);
-
-
-console.log(
-    "New member:",
-    name,
-    profilePicture
-);
 
 
 if (memberName) {
@@ -404,14 +390,11 @@ if (liveEventCard) {
         "has-member"
     );
 
-
     liveEventCard.classList.remove(
         "new-member"
     );
 
-
     void liveEventCard.offsetWidth;
-
 
     liveEventCard.classList.add(
         "new-member"
@@ -422,11 +405,27 @@ if (liveEventCard) {
 
 /*
 
-EVENT QUEUE
+QUEUE ONLY IMPORTANT EVENTS
 
 */
 
 function queueEvent(type, data) {
+
+/*
+ * فقط:
+ * gift
+ * follow
+ * subscribe
+ */
+
+if (
+    type !== "gift" &&
+    type !== "follow" &&
+    type !== "subscribe"
+) {
+    return;
+}
+
 
 if (!data) {
     return;
@@ -434,28 +433,9 @@ if (!data) {
 
 
 /*
- * التعليقات واللايكات قد تصل
- * بكميات ضخمة جدًا.
- *
- * لذلك لا نسمح للطابور بالتضخم.
+ * الهدايا لها الأولوية
  */
-if (
-    type === "chat" ||
-    type === "like"
-) {
 
-    if (eventQueue.length > 8) {
-        return;
-    }
-}
-
-
-/*
- * الهدايا أهم من اللايكات والتعليقات.
- *
- * إذا كانت هدية نضعها في بداية
- * الطابور.
- */
 if (type === "gift") {
 
     eventQueue.unshift({
@@ -472,13 +452,25 @@ if (type === "gift") {
 }
 
 
+/*
+ * منع الطابور من التضخم
+ */
+
+if (eventQueue.length > 10) {
+
+    eventQueue.splice(
+        10
+    );
+}
+
+
 processEventQueue();
 
 }
 
 /*
 
-PROCESS QUEUE
+QUEUE PROCESS
 
 */
 
@@ -492,7 +484,6 @@ if (eventIsPlaying) {
 if (
     eventQueue.length === 0
 ) {
-
     return;
 }
 
@@ -510,7 +501,7 @@ playLiveEvent(
 
 /*
 
-EVENT DURATION
+DURATION
 
 */
 
@@ -519,32 +510,23 @@ function getEventDuration(type) {
 switch (type) {
 
     case "gift":
-        return 3500;
+        return 4000;
 
     case "subscribe":
         return 3000;
 
     case "follow":
-        return 2500;
-
-    case "share":
-        return 2500;
-
-    case "like":
-        return 1800;
-
-    case "chat":
-        return 2200;
+        return 2800;
 
     default:
-        return 2200;
+        return 3000;
 }
 
 }
 
 /*
 
-GIFT TIER
+GIFT LEVEL
 
 */
 
@@ -575,7 +557,7 @@ return "small";
 
 /*
 
-PLAY LIVE EVENT
+PLAY EVENT
 
 */
 
@@ -585,11 +567,6 @@ data
 ) {
 
 if (!liveEventsCenter) {
-
-    console.warn(
-        "Center event container not found"
-    );
-
     return;
 }
 
@@ -600,32 +577,31 @@ eventIsPlaying = true;
 const name =
     getUserName(data);
 
-
 const username =
     getUserUsername(data);
-
 
 const profilePicture =
     getUserProfile(data);
 
 
 /*
- * إزالة الكلاسات القديمة
+ * RESET
  */
+
 liveEventsCenter.className =
     "live-events-center";
 
 
-/*
- * إعادة تشغيل الأنيميشن
- */
 void liveEventsCenter.offsetWidth;
 
+
+/*
+ * SHOW
+ */
 
 liveEventsCenter.classList.add(
     "show"
 );
-
 
 liveEventsCenter.classList.add(
     "event-" + type
@@ -635,6 +611,7 @@ liveEventsCenter.classList.add(
 /*
  * USER
  */
+
 if (liveEventUser) {
 
     liveEventUser.textContent =
@@ -647,6 +624,7 @@ if (liveEventUser) {
 /*
  * AVATAR
  */
+
 if (liveEventAvatar) {
 
     if (profilePicture) {
@@ -661,10 +639,6 @@ if (liveEventAvatar) {
 
     } else {
 
-        liveEventAvatar.removeAttribute(
-            "src"
-        );
-
         liveEventAvatar.style.display =
             "none";
     }
@@ -672,8 +646,9 @@ if (liveEventAvatar) {
 
 
 /*
- * CLEAR VALUES
+ * CLEAR
  */
+
 if (liveEventType) {
     liveEventType.textContent = "";
 }
@@ -688,126 +663,55 @@ if (liveEventValue) {
 
 
 /*
- ========================================
- MEMBER
- ========================================
- */
-
-if (type === "member") {
-
-    if (liveEventType) {
-        liveEventType.textContent =
-            "👋 دخول جديد";
-    }
-
-    if (liveEventContent) {
-        liveEventContent.textContent =
-            "نورت اللايف ✨";
-    }
-}
-
-
-/*
- ========================================
- CHAT
- ========================================
- */
-
-else if (type === "chat") {
-
-    if (liveEventType) {
-        liveEventType.textContent =
-            "💬 تعليق";
-    }
-
-    if (liveEventContent) {
-
-        liveEventContent.textContent =
-            data.comment ||
-            data.message ||
-            data.text ||
-            "";
-    }
-}
-
-
-/*
- ========================================
- LIKE
- ========================================
- */
-
-else if (type === "like") {
-
-    const count =
-        Number(
-            data.likeCount ||
-            data.count ||
-            data.totalLikeCount ||
-            1
-        );
-
-
-    if (liveEventType) {
-        liveEventType.textContent =
-            "❤️ لايك";
-    }
-
-
-    if (liveEventContent) {
-
-        liveEventContent.textContent =
-            "أرسل " +
-            count +
-            " إعجاب";
-    }
-
-
-    if (
-        liveEventsCenter
-    ) {
-
-        liveEventsCenter.classList.add(
-            "like-effect"
-        );
-    }
-}
-
-
-/*
- ========================================
+ ======================================
  FOLLOW
- ========================================
+ ======================================
  */
 
-else if (type === "follow") {
+if (type === "follow") {
+
+    liveEventCenterStyle(
+        "follow"
+    );
+
 
     if (liveEventType) {
+
         liveEventType.textContent =
-            "➕ متابعة جديدة";
+            "❤️ متابعة جديدة";
     }
 
+
     if (liveEventContent) {
+
         liveEventContent.textContent =
-            "شكرًا على المتابعة ❤️";
+            "شكرًا على المتابعة";
     }
 }
 
 
 /*
- ========================================
+ ======================================
  SUBSCRIBE
- ========================================
+ ======================================
  */
 
 else if (type === "subscribe") {
 
+    liveEventCenterStyle(
+        "subscribe"
+    );
+
+
     if (liveEventType) {
+
         liveEventType.textContent =
             "⭐ اشتراك جديد";
     }
 
+
     if (liveEventContent) {
+
         liveEventContent.textContent =
             "أهلًا بك في العائلة 👑";
     }
@@ -815,29 +719,9 @@ else if (type === "subscribe") {
 
 
 /*
- ========================================
- SHARE
- ========================================
- */
-
-else if (type === "share") {
-
-    if (liveEventType) {
-        liveEventType.textContent =
-            "🔄 مشاركة";
-    }
-
-    if (liveEventContent) {
-        liveEventContent.textContent =
-            "شكرًا على مشاركة اللايف ❤️";
-    }
-}
-
-
-/*
- ========================================
+ ======================================
  GIFT
- ========================================
+ ======================================
  */
 
 else if (type === "gift") {
@@ -845,7 +729,6 @@ else if (type === "gift") {
     const giftName =
         data.giftName ||
         data.gift ||
-        data.giftName ||
         "هدية";
 
 
@@ -875,9 +758,6 @@ else if (type === "gift") {
         );
 
 
-    /*
-     * إضافة مستوى الهدية
-     */
     liveEventsCenter.classList.add(
         "gift-" + tier
     );
@@ -885,29 +765,31 @@ else if (type === "gift") {
 
     if (liveEventType) {
 
-        if (tier === "legendary") {
+        if (
+            tier === "legendary"
+        ) {
 
             liveEventType.textContent =
-                "👑🎁 هدية أسطورية";
+                "👑 دعم أسطوري";
 
         } else if (
             tier === "large"
         ) {
 
             liveEventType.textContent =
-                "🔥🎁 هدية كبيرة";
+                "🔥 دعم كبير";
 
         } else if (
             tier === "medium"
         ) {
 
             liveEventType.textContent =
-                "🎁 هدية";
+                "🎁 دعم جديد";
 
         } else {
 
             liveEventType.textContent =
-                "🎁 دعم جديد";
+                "🎁 دعم";
         }
     }
 
@@ -931,20 +813,16 @@ else if (type === "gift") {
 
             liveEventValue.textContent =
                 "💎 " +
-                totalValue +
-                " ألماسة";
+                totalValue;
 
-        } else {
-
-            liveEventValue.textContent =
-                "";
         }
     }
 
 
     /*
-     * تأثيرات الهدايا
+     * إضافة تأثير حسب قيمة الدعم
      */
+
     if (
         tier === "legendary"
     ) {
@@ -973,8 +851,9 @@ else if (type === "gift") {
 
 
 /*
- * FORCE AVATAR ANIMATION
+ * AVATAR ANIMATION
  */
+
 if (liveEventAvatarWrapper) {
 
     liveEventAvatarWrapper.classList.remove(
@@ -990,11 +869,8 @@ if (liveEventAvatarWrapper) {
 
 
 /*
- * إخفاء الحدث بعد المدة
+ * HIDE
  */
-const duration =
-    getEventDuration(type);
-
 
 setTimeout(
     function () {
@@ -1002,14 +878,34 @@ setTimeout(
         hideLiveEvent();
 
     },
-    duration
+    getEventDuration(type)
 );
 
 }
 
 /*
 
-HIDE EVENT
+CENTER STYLE
+
+*/
+
+function liveEventCenterStyle(
+type
+) {
+
+if (!liveEventsCenter) {
+    return;
+}
+
+liveEventsCenter.classList.add(
+    "event-" + type
+);
+
+}
+
+/*
+
+HIDE
 
 */
 
@@ -1022,11 +918,9 @@ if (liveEventsCenter) {
     );
 
     liveEventsCenter.classList.remove(
-        "event-active"
-    );
-
-    liveEventsCenter.classList.remove(
-        "like-effect"
+        "event-follow",
+        "event-subscribe",
+        "event-gift"
     );
 
     liveEventsCenter.classList.remove(
@@ -1047,9 +941,6 @@ if (liveEventsCenter) {
 eventIsPlaying = false;
 
 
-/*
- * تشغيل الحدث التالي
- */
 setTimeout(
     function () {
 
@@ -1063,7 +954,7 @@ setTimeout(
 
 /*
 
-TIKTOK EVENTS
+CONNECT SSE
 
 */
 
@@ -1085,9 +976,9 @@ eventSource =
 
 
 /*
- =====================================
- MEMBER
- =====================================
+ * MEMBER
+ *
+ * يبقى في البطاقة السفلية فقط.
  */
 
 eventSource.addEventListener(
@@ -1101,23 +992,12 @@ eventSource.addEventListener(
                     event.data
                 );
 
-
             showMember(member);
 
-
-            /*
-             * الدخول يظهر أيضًا
-             * في منتصف الشاشة.
-             */
-            queueEvent(
-                "member",
-                member
-            );
-
         } catch (error) {
 
             console.error(
-                "Member event parse error:",
+                "Member event error:",
                 error
             );
         }
@@ -1126,49 +1006,7 @@ eventSource.addEventListener(
 
 
 /*
- =====================================
- CHAT
- =====================================
- */
-
-eventSource.addEventListener(
-    "chat",
-    function (event) {
-
-        try {
-
-            const data =
-                JSON.parse(
-                    event.data
-                );
-
-
-            console.log(
-                "CHAT:",
-                data
-            );
-
-
-            queueEvent(
-                "chat",
-                data
-            );
-
-        } catch (error) {
-
-            console.error(
-                "Chat event parse error:",
-                error
-            );
-        }
-    }
-);
-
-
-/*
- =====================================
- GIFT
- =====================================
+ * GIFT
  */
 
 eventSource.addEventListener(
@@ -1197,7 +1035,7 @@ eventSource.addEventListener(
         } catch (error) {
 
             console.error(
-                "Gift event parse error:",
+                "Gift event error:",
                 error
             );
         }
@@ -1206,49 +1044,7 @@ eventSource.addEventListener(
 
 
 /*
- =====================================
- LIKE
- =====================================
- */
-
-eventSource.addEventListener(
-    "like",
-    function (event) {
-
-        try {
-
-            const data =
-                JSON.parse(
-                    event.data
-                );
-
-
-            console.log(
-                "LIKE:",
-                data
-            );
-
-
-            queueEvent(
-                "like",
-                data
-            );
-
-        } catch (error) {
-
-            console.error(
-                "Like event parse error:",
-                error
-            );
-        }
-    }
-);
-
-
-/*
- =====================================
- FOLLOW
- =====================================
+ * FOLLOW
  */
 
 eventSource.addEventListener(
@@ -1277,7 +1073,7 @@ eventSource.addEventListener(
         } catch (error) {
 
             console.error(
-                "Follow event parse error:",
+                "Follow event error:",
                 error
             );
         }
@@ -1286,9 +1082,7 @@ eventSource.addEventListener(
 
 
 /*
- =====================================
- SUBSCRIBE
- =====================================
+ * SUBSCRIBE
  */
 
 eventSource.addEventListener(
@@ -1317,7 +1111,7 @@ eventSource.addEventListener(
         } catch (error) {
 
             console.error(
-                "Subscribe event parse error:",
+                "Subscribe event error:",
                 error
             );
         }
@@ -1326,92 +1120,15 @@ eventSource.addEventListener(
 
 
 /*
- =====================================
- SHARE
- =====================================
+ * تجاهل:
+ *
+ * chat
+ * like
+ * share
+ *
+ * لأنها لا تظهر في وسط الشاشة.
  */
 
-eventSource.addEventListener(
-    "share",
-    function (event) {
-
-        try {
-
-            const data =
-                JSON.parse(
-                    event.data
-                );
-
-
-            console.log(
-                "SHARE:",
-                data
-            );
-
-
-            queueEvent(
-                "share",
-                data
-            );
-
-        } catch (error) {
-
-            console.error(
-                "Share event parse error:",
-                error
-            );
-        }
-    }
-);
-
-
-/*
- =====================================
- CONNECTION EVENTS
- =====================================
- */
-
-eventSource.addEventListener(
-    "connected",
-    function (event) {
-
-        console.log(
-            "S-LIVE connected:",
-            event.data
-        );
-    }
-);
-
-
-eventSource.addEventListener(
-    "disconnected",
-    function (event) {
-
-        console.log(
-            "S-LIVE disconnected:",
-            event.data
-        );
-    }
-);
-
-
-eventSource.addEventListener(
-    "error",
-    function (event) {
-
-        console.error(
-            "S-LIVE server error:",
-            event.data
-        );
-    }
-);
-
-
-/*
- =====================================
- STREAM ERROR
- =====================================
- */
 
 eventSource.onerror =
     function () {
