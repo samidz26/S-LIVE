@@ -18,14 +18,12 @@ function getFirstUrl(value) {
         return null;
     }
 
-
     if (typeof value === "string") {
 
         return value.startsWith("http")
             ? value
             : null;
     }
-
 
     if (Array.isArray(value)) {
 
@@ -41,12 +39,7 @@ function getFirstUrl(value) {
         return null;
     }
 
-
     if (typeof value === "object") {
-
-        /*
-         * أشهر صيغ TikTok
-         */
 
         const possibleFields = [
             "url_list",
@@ -57,14 +50,12 @@ function getFirstUrl(value) {
             "profile_picture_url",
             "avatar",
             "avatar_thumb",
-            "avatarThumb"
+            "avatarThumb",
+            "giftPictureUrl",
+            "gift_picture_url"
         ];
 
-
-        for (
-            const field
-            of possibleFields
-        ) {
+        for (const field of possibleFields) {
 
             if (
                 Object.prototype.hasOwnProperty.call(
@@ -84,24 +75,15 @@ function getFirstUrl(value) {
             }
         }
 
-
-        /*
-         * بحث محدود داخل الكائن
-         * في حال تغيرت بنية TikTok
-         */
-
-        for (
-            const key
-            of Object.keys(value)
-        ) {
+        for (const key of Object.keys(value)) {
 
             const lowerKey =
                 key.toLowerCase();
 
-
             if (
                 lowerKey.includes("avatar") ||
-                lowerKey.includes("profilepicture")
+                lowerKey.includes("profilepicture") ||
+                lowerKey.includes("giftpicture")
             ) {
 
                 const url =
@@ -116,7 +98,6 @@ function getFirstUrl(value) {
         }
     }
 
-
     return null;
 }
 
@@ -125,25 +106,16 @@ function getFirstUrl(value) {
    FIND BROADCASTER PROFILE PICTURE
 ========================================= */
 
-function getBroadcasterProfilePicture(
-    connection
-) {
+function getBroadcasterProfilePicture(connection) {
 
     try {
 
         const roomInfo =
             connection?.roomInfo;
 
-
         if (!roomInfo) {
             return null;
         }
-
-
-        /*
-         * صاحب الغرفة غالباً موجود
-         * في roomInfo.owner
-         */
 
         const owner =
             roomInfo.owner ||
@@ -151,33 +123,16 @@ function getBroadcasterProfilePicture(
             roomInfo.anchor ||
             roomInfo.host;
 
-
         if (!owner) {
-
             return null;
         }
 
-
         return (
-            getFirstUrl(
-                owner.avatar_thumb
-            ) ||
-
-            getFirstUrl(
-                owner.avatarThumb
-            ) ||
-
-            getFirstUrl(
-                owner.profilePictureUrl
-            ) ||
-
-            getFirstUrl(
-                owner.profile_picture_url
-            ) ||
-
-            getFirstUrl(
-                owner.avatar
-            )
+            getFirstUrl(owner.avatar_thumb) ||
+            getFirstUrl(owner.avatarThumb) ||
+            getFirstUrl(owner.profilePictureUrl) ||
+            getFirstUrl(owner.profile_picture_url) ||
+            getFirstUrl(owner.avatar)
         );
 
     } catch (error) {
@@ -193,12 +148,64 @@ function getBroadcasterProfilePicture(
 
 
 /* =========================================
+   GET USER DATA
+========================================= */
+
+function getUserData(data) {
+
+    const user =
+        data?.user ||
+        data?.member ||
+        data?.author ||
+        data?.sender ||
+        data;
+
+    if (!user) {
+
+        return {
+            uniqueId: "",
+            nickname: "مستخدم TikTok",
+            profilePictureUrl: ""
+        };
+    }
+
+    const uniqueId =
+        user.uniqueId ||
+        user.unique_id ||
+        data?.uniqueId ||
+        data?.unique_id ||
+        "";
+
+    const nickname =
+        user.nickname ||
+        user.nickName ||
+        data?.nickname ||
+        data?.nickName ||
+        uniqueId ||
+        "مستخدم TikTok";
+
+    const profilePictureUrl =
+        user.profilePictureUrl ||
+        user.profile_picture_url ||
+        getFirstUrl(user.avatar_thumb) ||
+        getFirstUrl(user.avatarThumb) ||
+        getFirstUrl(user.avatar) ||
+        getFirstUrl(data?.profilePictureUrl) ||
+        "";
+
+    return {
+        uniqueId,
+        nickname,
+        profilePictureUrl
+    };
+}
+
+
+/* =========================================
    CONNECT TO TIKTOK
 ========================================= */
 
-async function connectToTikTok(
-    username
-) {
+async function connectToTikTok(username) {
 
     if (!username) {
 
@@ -207,12 +214,10 @@ async function connectToTikTok(
         );
     }
 
-
     const cleanUsername =
         String(username)
             .trim()
             .replace(/^@/, "");
-
 
     if (!cleanUsername) {
 
@@ -222,10 +227,9 @@ async function connectToTikTok(
     }
 
 
-    /*
-     * إذا كان هناك اتصال سابق
-     * نفصله أولاً.
-     */
+    /* =========================================
+       DISCONNECT PREVIOUS CONNECTION
+    ========================================= */
 
     if (activeConnection) {
 
@@ -245,19 +249,14 @@ async function connectToTikTok(
     }
 
 
-    activeUsername =
-        null;
-
-    activeRoomId =
-        null;
-
-    activeProfilePicture =
-        null;
+    activeUsername = null;
+    activeRoomId = null;
+    activeProfilePicture = null;
 
 
-    /*
-     * تحميل المكتبة ديناميكياً
-     */
+    /* =========================================
+       LOAD TIKTOK LIVE CONNECTOR
+    ========================================= */
 
     const module =
         await import(
@@ -266,15 +265,13 @@ async function connectToTikTok(
 
 
     /*
-     * الإصدارات الحديثة تستخدم
-     * WebcastPushConnection
+     * دعم أكثر من اسم حسب إصدار المكتبة
      */
 
     const TikTokLiveConnection =
         module.TikTokLiveConnection ||
         module.WebcastPushConnection ||
         module.default;
-
 
     const WebcastEvent =
         module.WebcastEvent ||
@@ -292,9 +289,9 @@ async function connectToTikTok(
     }
 
 
-    /*
-     * إنشاء الاتصال
-     */
+    /* =========================================
+       CREATE CONNECTION
+    ========================================= */
 
     const connection =
         new TikTokLiveConnection(
@@ -307,13 +304,41 @@ async function connectToTikTok(
 
 
     /* =========================================
-       MEMBER EVENT
+       EVENT NAMES
     ========================================= */
 
     const memberEvent =
         WebcastEvent.MEMBER ||
         "member";
 
+    const chatEvent =
+        WebcastEvent.CHAT ||
+        "chat";
+
+    const giftEvent =
+        WebcastEvent.GIFT ||
+        "gift";
+
+    const likeEvent =
+        WebcastEvent.LIKE ||
+        "like";
+
+    const followEvent =
+        WebcastEvent.FOLLOW ||
+        "follow";
+
+    const subscribeEvent =
+        WebcastEvent.SUBSCRIBE ||
+        "subscribe";
+
+    const shareEvent =
+        WebcastEvent.SHARE ||
+        "share";
+
+
+    /* =========================================
+       👤 MEMBER
+    ========================================= */
 
     connection.on(
         memberEvent,
@@ -322,64 +347,30 @@ async function connectToTikTok(
             try {
 
                 const user =
-                    data?.user ||
-                    data?.member ||
-                    data;
-
-
-                if (!user) {
-                    return;
-                }
-
-
-                const uniqueId =
-                    user.uniqueId ||
-                    user.unique_id ||
-                    data?.uniqueId ||
-                    data?.unique_id ||
-                    "";
-
-
-                const nickname =
-                    user.nickname ||
-                    user.nickName ||
-                    data?.nickname ||
-                    data?.nickName ||
-                    uniqueId ||
-                    "مستخدم TikTok";
-
-
-                const profilePictureUrl =
-                    user.profilePictureUrl ||
-                    user.profile_picture_url ||
-                    getFirstUrl(
-                        user.avatar_thumb
-                    ) ||
-                    getFirstUrl(
-                        user.avatarThumb
-                    ) ||
-                    getFirstUrl(
-                        user.avatar
-                    ) ||
-                    data?.profilePictureUrl ||
-                    "";
-
+                    getUserData(data);
 
                 const member = {
 
-                    uniqueId,
+                    uniqueId:
+                        user.uniqueId,
 
-                    nickname,
+                    nickname:
+                        user.nickname,
 
-                    profilePictureUrl
+                    profilePictureUrl:
+                        user.profilePictureUrl
                 };
 
+                console.log(
+                    "MEMBER:",
+                    `@${member.uniqueId || "unknown"}`,
+                    member.nickname
+                );
 
                 liveEvents.emit(
                     "member",
                     member
                 );
-
 
             } catch (error) {
 
@@ -393,7 +384,450 @@ async function connectToTikTok(
 
 
     /* =========================================
-       ERROR EVENT
+       💬 CHAT / COMMENT
+    ========================================= */
+
+    connection.on(
+        chatEvent,
+        (data) => {
+
+            try {
+
+                const user =
+                    getUserData(data);
+
+                const comment =
+                    data?.comment ||
+                    data?.text ||
+                    data?.message ||
+                    "";
+
+                const chat = {
+
+                    uniqueId:
+                        user.uniqueId,
+
+                    nickname:
+                        user.nickname,
+
+                    profilePictureUrl:
+                        user.profilePictureUrl,
+
+                    comment:
+                        String(comment)
+                };
+
+
+                console.log(
+                    "CHAT:",
+                    `@${chat.uniqueId || "unknown"}`,
+                    "→",
+                    chat.comment
+                );
+
+
+                liveEvents.emit(
+                    "chat",
+                    chat
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "S-LIVE chat processing error:",
+                    error
+                );
+            }
+        }
+    );
+
+
+    /* =========================================
+       🎁 GIFT / SUPPORT
+    ========================================= */
+
+    connection.on(
+        giftEvent,
+        (data) => {
+
+            try {
+
+                const user =
+                    getUserData(data);
+
+
+                const giftDetails =
+                    data?.giftDetails ||
+                    data?.gift ||
+                    {};
+
+
+                const giftName =
+                    giftDetails.giftName ||
+                    data?.giftName ||
+                    "هدية";
+
+
+                const giftId =
+                    giftDetails.giftId ||
+                    data?.giftId ||
+                    null;
+
+
+                const diamondCount =
+                    Number(
+                        giftDetails.diamondCount ??
+                        data?.diamondCount ??
+                        0
+                    );
+
+
+                const repeatCount =
+                    Number(
+                        data?.repeatCount ??
+                        giftDetails.repeatCount ??
+                        1
+                    );
+
+
+                const repeatEnd =
+                    data?.repeatEnd ??
+                    giftDetails.repeatEnd ??
+                    true;
+
+
+                const giftType =
+                    Number(
+                        giftDetails.giftType ??
+                        data?.giftType ??
+                        0
+                    );
+
+
+                const giftPictureUrl =
+                    getFirstUrl(
+                        giftDetails.giftPictureUrl
+                    ) ||
+                    getFirstUrl(
+                        giftDetails.giftPicture
+                    ) ||
+                    getFirstUrl(
+                        data?.giftPictureUrl
+                    ) ||
+                    "";
+
+
+                /*
+                 * هدايا الـ Streak
+                 *
+                 * لا نرسل الأحداث الوسيطة.
+                 * ننتظر الحدث النهائي.
+                 */
+
+                if (
+                    giftType === 1 &&
+                    repeatEnd === false
+                ) {
+
+                    return;
+                }
+
+
+                const totalValue =
+                    diamondCount *
+                    repeatCount;
+
+
+                const gift = {
+
+                    uniqueId:
+                        user.uniqueId,
+
+                    nickname:
+                        user.nickname,
+
+                    profilePictureUrl:
+                        user.profilePictureUrl,
+
+                    giftId,
+
+                    giftName,
+
+                    giftPictureUrl,
+
+                    diamondCount,
+
+                    repeatCount,
+
+                    repeatEnd,
+
+                    giftType,
+
+                    totalValue
+                };
+
+
+                console.log(
+                    "GIFT:",
+                    `@${gift.uniqueId || "unknown"}`,
+                    "→",
+                    gift.giftName,
+                    "x",
+                    gift.repeatCount,
+                    "| diamonds:",
+                    gift.totalValue
+                );
+
+
+                liveEvents.emit(
+                    "gift",
+                    gift
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "S-LIVE gift processing error:",
+                    error
+                );
+            }
+        }
+    );
+
+
+    /* =========================================
+       ❤️ LIKE / TAP
+    ========================================= */
+
+    connection.on(
+        likeEvent,
+        (data) => {
+
+            try {
+
+                const user =
+                    getUserData(data);
+
+
+                const likeCount =
+                    Number(
+                        data?.likeCount ??
+                        data?.count ??
+                        1
+                    );
+
+
+                const totalLikeCount =
+                    Number(
+                        data?.totalLikeCount ??
+                        0
+                    );
+
+
+                const like = {
+
+                    uniqueId:
+                        user.uniqueId,
+
+                    nickname:
+                        user.nickname,
+
+                    profilePictureUrl:
+                        user.profilePictureUrl,
+
+                    likeCount,
+
+                    totalLikeCount
+                };
+
+
+                console.log(
+                    "LIKE:",
+                    `@${like.uniqueId || "unknown"}`,
+                    "→",
+                    like.likeCount
+                );
+
+
+                liveEvents.emit(
+                    "like",
+                    like
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "S-LIVE like processing error:",
+                    error
+                );
+            }
+        }
+    );
+
+
+    /* =========================================
+       ➕ FOLLOW
+    ========================================= */
+
+    connection.on(
+        followEvent,
+        (data) => {
+
+            try {
+
+                const user =
+                    getUserData(data);
+
+
+                const follow = {
+
+                    uniqueId:
+                        user.uniqueId,
+
+                    nickname:
+                        user.nickname,
+
+                    profilePictureUrl:
+                        user.profilePictureUrl
+                };
+
+
+                console.log(
+                    "FOLLOW:",
+                    `@${follow.uniqueId || "unknown"}`,
+                    follow.nickname
+                );
+
+
+                liveEvents.emit(
+                    "follow",
+                    follow
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "S-LIVE follow processing error:",
+                    error
+                );
+            }
+        }
+    );
+
+
+    /* =========================================
+       🔔 SUBSCRIBE
+    ========================================= */
+
+    connection.on(
+        subscribeEvent,
+        (data) => {
+
+            try {
+
+                const user =
+                    getUserData(data);
+
+
+                const subscribe = {
+
+                    uniqueId:
+                        user.uniqueId,
+
+                    nickname:
+                        user.nickname,
+
+                    profilePictureUrl:
+                        user.profilePictureUrl,
+
+                    message:
+                        data?.message ||
+                        "",
+
+                    subMonth:
+                        Number(
+                            data?.subMonth ??
+                            data?.months ??
+                            1
+                        )
+                };
+
+
+                console.log(
+                    "SUBSCRIBE:",
+                    `@${subscribe.uniqueId || "unknown"}`,
+                    subscribe.nickname
+                );
+
+
+                liveEvents.emit(
+                    "subscribe",
+                    subscribe
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "S-LIVE subscribe processing error:",
+                    error
+                );
+            }
+        }
+    );
+
+
+    /* =========================================
+       🔄 SHARE
+    ========================================= */
+
+    connection.on(
+        shareEvent,
+        (data) => {
+
+            try {
+
+                const user =
+                    getUserData(data);
+
+
+                const share = {
+
+                    uniqueId:
+                        user.uniqueId,
+
+                    nickname:
+                        user.nickname,
+
+                    profilePictureUrl:
+                        user.profilePictureUrl
+                };
+
+
+                console.log(
+                    "SHARE:",
+                    `@${share.uniqueId || "unknown"}`,
+                    share.nickname
+                );
+
+
+                liveEvents.emit(
+                    "share",
+                    share
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "S-LIVE share processing error:",
+                    error
+                );
+            }
+        }
+    );
+
+
+    /* =========================================
+       ❌ ERROR
     ========================================= */
 
     connection.on(
@@ -418,16 +852,16 @@ async function connectToTikTok(
 
 
     /* =========================================
-       CONNECT
+       🔌 CONNECT
     ========================================= */
 
     const roomId =
         await connection.connect();
 
 
-    /*
-     * حفظ الاتصال
-     */
+    /* =========================================
+       SAVE CONNECTION
+    ========================================= */
 
     activeConnection =
         connection;
@@ -439,9 +873,9 @@ async function connectToTikTok(
         roomId || null;
 
 
-    /*
-     * استخراج صورة صاحب اللايف
-     */
+    /* =========================================
+       BROADCASTER PROFILE
+    ========================================= */
 
     activeProfilePicture =
         getBroadcasterProfilePicture(
@@ -461,9 +895,9 @@ async function connectToTikTok(
     );
 
 
-    /*
-     * إرسال معلومات الاتصال
-     */
+    /* =========================================
+       CONNECTED EVENT
+    ========================================= */
 
     liveEvents.emit(
         "connected",
