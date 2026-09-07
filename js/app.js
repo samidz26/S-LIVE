@@ -1,506 +1,48 @@
-/*
+document.addEventListener("DOMContentLoaded", () => {
+    initializeApp();
+});
 
-S-LIVE APP
-Main Application Controller
 
-*/
-
-(function () {
-
-"use strict";
-
-
-/*
-=====================================
-CONFIGURATION
-=====================================
-*/
-
-const APP_CONFIG = {
-
-    defaultPage: "connection",
-
-    pagesPath: "pages",
-
-    connectionPage: "connection",
-
-    homePage: "home"
-
-};
-
-
-/*
-=====================================
-GLOBAL STATE
-=====================================
-*/
-
-let currentPage = null;
-
-let loadingPage = false;
-
-
-/*
-=====================================
-DOM
-=====================================
-*/
-
-function getPageContainer() {
-
-    return document.getElementById(
-        "middle-section"
-    );
-
-}
-
-
-/*
-=====================================
-LOAD CSS
-=====================================
-*/
-
-function loadPageCSS(
-    pageName
-) {
-
-    const existing =
-        document.querySelector(
-            `link[data-s-live-page-css="${pageName}"]`
-        );
-
-
-    if (existing) {
-        return;
-    }
-
-
-    const link =
-        document.createElement(
-            "link"
-        );
-
-
-    link.rel =
-        "stylesheet";
-
-    link.href =
-        `${APP_CONFIG.pagesPath}/${pageName}/${pageName}.css`;
-
-    link.dataset.sLivePageCss =
-        pageName;
-
-
-    document.head.appendChild(
-        link
-    );
-
-}
-
-
-/*
-=====================================
-REMOVE OLD PAGE CSS
-=====================================
-*/
-
-function removePageCSS(
-    exceptPage
-) {
-
-    document
-        .querySelectorAll(
-            "link[data-s-live-page-css]"
-        )
-        .forEach(
-            (link) => {
-
-                if (
-                    link.dataset.sLivePageCss !==
-                    exceptPage
-                ) {
-
-                    link.remove();
-
-                }
-
-            }
-        );
-
-}
-
-
-/*
-=====================================
-LOAD JAVASCRIPT
-=====================================
-*/
-
-function loadPageJS(
-    pageName
-) {
-
-    return new Promise(
-        (resolve) => {
-
-            const oldScript =
-                document.querySelector(
-                    `script[data-s-live-page-js="${pageName}"]`
-                );
-
-
-            /*
-            إذا كان الملف موجودًا
-            فلا نعيد تحميله
-            */
-
-            if (oldScript) {
-
-                resolve();
-
-                return;
-
-            }
-
-
-            const script =
-                document.createElement(
-                    "script"
-                );
-
-
-            script.src =
-                `${APP_CONFIG.pagesPath}/${pageName}/${pageName}.js`;
-
-
-            script.dataset.sLivePageJs =
-                pageName;
-
-
-            script.onload =
-                () => {
-
-                    resolve();
-
-                };
-
-
-            script.onerror =
-                () => {
-
-                    console.error(
-                        `S-LIVE: Failed to load ${pageName}.js`
-                    );
-
-                    resolve();
-
-                };
-
-
-            document.body.appendChild(
-                script
-            );
-
-        }
-    );
-
-}
-
-
-/*
-=====================================
-LOAD HTML
-=====================================
-*/
-
-async function loadPage(
-    pageName
-) {
-
-    if (
-        loadingPage
-    ) {
-
-        return;
-
-    }
-
-
-    if (
-        !pageName
-    ) {
-
-        pageName =
-            APP_CONFIG.defaultPage;
-
-    }
-
-
-    const container =
-        getPageContainer();
-
-
-    if (!container) {
-
-        console.error(
-            "S-LIVE: #middle-section not found"
-        );
-
-        return;
-
-    }
-
-
-    loadingPage =
-        true;
-
-
-    try {
-
-        console.log(
-            `S-LIVE: Loading page → ${pageName}`
-        );
-
-
-        /*
-        =================================
-        LOAD HTML
-        =================================
-        */
-
-        const response =
-            await fetch(
-                `${APP_CONFIG.pagesPath}/${pageName}/${pageName}.html`,
-                {
-                    cache: "no-store"
-                }
-            );
-
-
-        if (
-            !response.ok
-        ) {
-
-            throw new Error(
-                `HTTP ${response.status}`
-            );
-
-        }
-
-
-        const html =
-            await response.text();
-
-
-        /*
-        =================================
-        PUT HTML
-        =================================
-        */
-
-        container.innerHTML =
-            html;
-
-
-        /*
-        =================================
-        CSS
-        =================================
-        */
-
-        removePageCSS(
-            pageName
-        );
-
-        loadPageCSS(
-            pageName
-        );
-
-
-        /*
-        =================================
-        JAVASCRIPT
-        =================================
-        */
-
-        await loadPageJS(
-            pageName
-        );
-
-
-        currentPage =
-            pageName;
-
-
-        console.log(
-            `S-LIVE: Page loaded → ${pageName}`
-        );
-
-
-        /*
-        =================================
-        PAGE EVENT
-        =================================
-        */
-
-        window.dispatchEvent(
-            new CustomEvent(
-                "s-live-page-loaded",
-                {
-                    detail: {
-                        page:
-                            pageName
-                    }
-                }
-            )
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            `S-LIVE: Failed to load page "${pageName}"`,
-            error
-        );
-
-
-        /*
-        لا نترك الشاشة فارغة
-        */
-
-        if (
-            pageName !==
-            APP_CONFIG.connectionPage
-        ) {
-
-            try {
-
-                await loadPage(
-                    APP_CONFIG.connectionPage
-                );
-
-            } catch (
-                connectionError
-            ) {
-
-                console.error(
-                    connectionError
-                );
-
-            }
-
-        } else {
-
-            container.innerHTML = `
-
-                <div style="
-                    width:100%;
-                    height:100%;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    text-align:center;
-                    color:white;
-                    font-family:Arial,sans-serif;
-                    padding:20px;
-                ">
-
-                    <div>
-
-                        <h2>
-                            S-LIVE
-                        </h2>
-
-                        <p>
-                            تعذر تحميل صفحة الاتصال
-                        </p>
-
-                        <button
-                            onclick="location.reload()"
-                            style="
-                                padding:10px 20px;
-                                cursor:pointer;
-                            "
-                        >
-                            إعادة المحاولة
-                        </button>
-
-                    </div>
-
-                </div>
-
-            `;
-
-        }
-
-
-    } finally {
-
-        loadingPage =
-            false;
-
-    }
-
-}
-
-
-/*
-=====================================
-CHECK SAVED SESSION
-=====================================
-*/
+/* =========================================
+   INITIALIZE S-LIVE
+========================================= */
 
 async function initializeApp() {
 
-    console.log(
-        "S-LIVE: Initializing application..."
-    );
+    console.log("S-LIVE: Initializing...");
 
+    const savedUsername =
+        localStorage.getItem("s_live_username");
 
-    const username =
-        localStorage.getItem(
-            "s_live_username"
-        );
-
-
-    const connected =
-        localStorage.getItem(
-            "s_live_connected"
-        );
-
+    const savedConnected =
+        localStorage.getItem("s_live_connected");
 
     /*
-    =================================
-    NO SAVED SESSION
-    =================================
+        لا يوجد اتصال محفوظ
+        → افتح صفحة الاتصال
     */
 
     if (
-        !username ||
-        connected !== "true"
+        savedConnected !== "true" ||
+        !savedUsername
     ) {
-
         console.log(
-            "S-LIVE: No saved session"
+            "S-LIVE: No saved connection"
         );
 
-
-        await loadPage(
-            APP_CONFIG.connectionPage
-        );
-
-
+        loadPage("connection");
         return;
-
     }
 
 
     /*
-    =================================
-    CHECK SERVER
-    =================================
+        يوجد اتصال محفوظ
+        → نتحقق من السيرفر
     */
+
+    console.log(
+        `S-LIVE: Checking connection for @${savedUsername}`
+    );
 
     try {
 
@@ -513,281 +55,401 @@ async function initializeApp() {
                 }
             );
 
-
-        if (
-            !response.ok
-        ) {
-
+        if (!response.ok) {
             throw new Error(
-                `HTTP ${response.status}`
+                "Connection status request failed"
             );
-
         }
-
 
         const data =
             await response.json();
 
+        console.log(
+            "S-LIVE: Connection status:",
+            data
+        );
+
 
         /*
-        =================================
-        SERVER CONNECTED
-        =================================
+            السيرفر ما زال متصلاً
+            → افتح Home مباشرة
         */
 
         if (
-            data &&
-            data.connected === true
+            data.connected === true &&
+            data.username
         ) {
 
-            console.log(
-                "S-LIVE: Active TikTok connection found"
-            );
-
-
-            /*
-            تحديث البيانات
-            */
-
-            if (
+            localStorage.setItem(
+                "s_live_username",
                 data.username
-            ) {
-
-                localStorage.setItem(
-                    "s_live_username",
-                    data.username
-                );
-
-            }
-
-
-            if (
-                data.roomId
-            ) {
-
-                localStorage.setItem(
-                    "s_live_room_id",
-                    data.roomId
-                );
-
-            }
-
-
-            if (
-                data.profilePictureUrl
-            ) {
-
-                localStorage.setItem(
-                    "s_live_profile_picture",
-                    data.profilePictureUrl
-                );
-
-            }
-
+            );
 
             localStorage.setItem(
                 "s_live_connected",
                 "true"
             );
 
-
-            /*
-            Home
-            */
-
-            await loadPage(
-                APP_CONFIG.homePage
-            );
-
+            loadPage("home");
 
             return;
-
         }
 
 
         /*
-        =================================
-        SERVER NOT CONNECTED
-        =================================
+            السيرفر غير متصل.
+
+            نحاول إعادة الاتصال تلقائياً
+            باستخدام اسم المستخدم المحفوظ.
         */
 
         console.log(
-            "S-LIVE: Saved session is no longer active"
+            "S-LIVE: Server is not connected"
         );
 
-
-        clearSavedSession();
-
-
-        await loadPage(
-            APP_CONFIG.connectionPage
-        );
-
-
-    } catch (error) {
-
-        console.warn(
-            "S-LIVE: Could not verify server session:",
-            error
-        );
-
-
-        /*
-        إذا لم يستطع المتصفح الوصول للسيرفر
-        لا نذهب إلى Home الوهمية.
-        */
-
-        clearSavedSession();
-
-
-        await loadPage(
-            APP_CONFIG.connectionPage
-        );
-
-    }
-
-}
-
-
-/*
-=====================================
-CLEAR SESSION
-=====================================
-*/
-
-function clearSavedSession() {
-
-    localStorage.removeItem(
-        "s_live_username"
-    );
-
-    localStorage.removeItem(
-        "s_live_connected"
-    );
-
-    localStorage.removeItem(
-        "s_live_room_id"
-    );
-
-    localStorage.removeItem(
-        "s_live_profile_picture"
-    );
-
-}
-
-
-/*
-=====================================
-LOGOUT / DISCONNECT
-=====================================
-*/
-
-async function disconnect() {
-
-    try {
-
-        await fetch(
-            "/api/connection/disconnect",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                }
-            }
+        await reconnectAutomatically(
+            savedUsername
         );
 
     } catch (error) {
 
         console.error(
-            "S-LIVE: Disconnect request failed:",
+            "S-LIVE: Initialization error:",
             error
         );
 
+        /*
+            إذا تعذر التحقق من السيرفر
+            لا نحذف البيانات مباشرة.
+
+            نفتح Home لأن المستخدم كان متصلاً
+            سابقاً.
+        */
+
+        loadPage("home");
+    }
+}
+
+
+/* =========================================
+   AUTOMATIC RECONNECT
+========================================= */
+
+async function reconnectAutomatically(
+    username
+) {
+
+    console.log(
+        `S-LIVE: Reconnecting to @${username}...`
+    );
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/connection/connect",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify({
+                        username:
+                            username
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message ||
+                "Automatic reconnect failed"
+            );
+        }
+
+
+        console.log(
+            "S-LIVE: Automatic reconnect successful",
+            data
+        );
+
+
+        localStorage.setItem(
+            "s_live_username",
+            data.username || username
+        );
+
+        localStorage.setItem(
+            "s_live_connected",
+            "true"
+        );
+
+
+        /*
+            بعد نجاح إعادة الاتصال
+            نذهب إلى Home
+        */
+
+        loadPage("home");
+
+    } catch (error) {
+
+        console.error(
+            "S-LIVE: Automatic reconnect failed:",
+            error
+        );
+
+
+        /*
+            إعادة الاتصال فشلت.
+
+            نحذف حالة الاتصال القديمة
+            ونرجع لصفحة الاتصال.
+        */
+
+        localStorage.removeItem(
+            "s_live_username"
+        );
+
+        localStorage.removeItem(
+            "s_live_connected"
+        );
+
+        loadPage("connection");
+    }
+}
+
+
+/* =========================================
+   LOAD PAGE
+========================================= */
+
+async function loadPage(pageName) {
+
+    const appScreen =
+        document.getElementById(
+            "app-screen"
+        );
+
+    if (!appScreen) {
+
+        console.error(
+            "S-LIVE: app-screen not found"
+        );
+
+        return;
     }
 
 
-    clearSavedSession();
+    try {
+
+        /*
+            تحميل HTML
+        */
+
+        const response =
+            await fetch(
+                `pages/${pageName}/${pageName}.html`
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Failed to load page: ${pageName}`
+            );
+        }
 
 
-    await loadPage(
-        APP_CONFIG.connectionPage
+        const html =
+            await response.text();
+
+
+        /*
+            وضع الصفحة داخل مساحة العرض
+        */
+
+        appScreen.innerHTML =
+            html;
+
+
+        /*
+            تحميل CSS الخاص بالصفحة
+        */
+
+        loadPageStyles(
+            pageName
+        );
+
+
+        /*
+            تحميل JavaScript الخاص بالصفحة
+        */
+
+        await loadPageScript(
+            pageName
+        );
+
+
+        console.log(
+            `S-LIVE: ${pageName} loaded successfully`
+        );
+
+    } catch (error) {
+
+        console.error(
+            "S-LIVE page error:",
+            error
+        );
+
+        appScreen.innerHTML = `
+            <div class="page-load-error">
+                حدث خطأ أثناء تحميل الصفحة
+            </div>
+        `;
+    }
+}
+
+
+/* =========================================
+   LOAD PAGE CSS
+========================================= */
+
+function loadPageStyles(
+    pageName
+) {
+
+    /*
+        حذف CSS الصفحة السابقة
+    */
+
+    const oldStyle =
+        document.getElementById(
+            "active-page-style"
+        );
+
+    if (oldStyle) {
+        oldStyle.remove();
+    }
+
+
+    /*
+        إنشاء رابط CSS جديد
+    */
+
+    const style =
+        document.createElement(
+            "link"
+        );
+
+    style.id =
+        "active-page-style";
+
+    style.rel =
+        "stylesheet";
+
+    style.href =
+        `pages/${pageName}/${pageName}.css`;
+
+
+    document.head.appendChild(
+        style
     );
-
 }
 
 
-/*
-=====================================
-GET CURRENT PAGE
-=====================================
-*/
+/* =========================================
+   LOAD PAGE JAVASCRIPT
+========================================= */
 
-function getCurrentPage() {
+function loadPageScript(
+    pageName
+) {
 
-    return currentPage;
+    return new Promise(
+        (resolve, reject) => {
 
+            /*
+                حذف JS الصفحة السابقة
+            */
+
+            const oldScript =
+                document.getElementById(
+                    "active-page-script"
+                );
+
+            if (oldScript) {
+                oldScript.remove();
+            }
+
+
+            /*
+                إنشاء Script جديد
+            */
+
+            const script =
+                document.createElement(
+                    "script"
+                );
+
+            script.id =
+                "active-page-script";
+
+            script.src =
+                `pages/${pageName}/${pageName}.js`;
+
+
+            script.onload =
+                () => {
+
+                    console.log(
+                        `S-LIVE: ${pageName}.js loaded`
+                    );
+
+                    resolve();
+                };
+
+
+            script.onerror =
+                () => {
+
+                    console.error(
+                        `S-LIVE: Failed to load ${pageName}.js`
+                    );
+
+                    reject(
+                        new Error(
+                            `Failed to load ${pageName}.js`
+                        )
+                    );
+                };
+
+
+            document.body.appendChild(
+                script
+            );
+        }
+    );
 }
 
 
-/*
-=====================================
-PUBLIC API
-=====================================
-*/
+/* =========================================
+   GLOBAL S-LIVE API
+========================================= */
 
 window.SLive = {
 
     loadPage,
 
-    disconnect,
+    initializeApp,
 
-    clearSavedSession,
-
-    getCurrentPage,
-
-    getUsername: function () {
-
-        return localStorage.getItem(
-            "s_live_username"
-        );
-
-    },
-
-    getProfilePicture: function () {
-
-        return localStorage.getItem(
-            "s_live_profile_picture"
-        );
-
-    },
-
-    isConnected: function () {
-
-        return (
-            localStorage.getItem(
-                "s_live_connected"
-            ) === "true"
-        );
-
-    }
+    reconnectAutomatically
 
 };
-
-
-/*
-=====================================
-START APPLICATION
-=====================================
-*/
-
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
-
-        initializeApp();
-
-    }
-);
-
-})();
