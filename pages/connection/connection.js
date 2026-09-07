@@ -31,26 +31,61 @@
        زر الاتصال
     ========================================= */
 
-    connectButton.addEventListener(
-        "click",
-        startConnection
-    );
+    const connectButton = document.querySelector("#connect-button");
+const usernameInput = document.querySelector("#username");
+const statusElement = document.querySelector("#connection-status");
 
+connectButton.addEventListener("click", async () => {
 
-    /* =========================================
-       الضغط على Enter
-    ========================================= */
+    const username = usernameInput.value.trim();
 
-    usernameInput.addEventListener(
-        "keydown",
-        function (event) {
+    if (!username) {
+        statusElement.textContent = "أدخل اسم مستخدم TikTok";
+        return;
+    }
 
-            if (event.key === "Enter") {
-                startConnection();
-            }
+    connectButton.disabled = true;
+    statusElement.textContent = "جاري الاتصال...";
 
+    try {
+
+        const response = await fetch("/api/connection/connect", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(
+                data.message || "فشل الاتصال"
+            );
         }
-    );
+
+        console.log("TikTok connected:", data);
+
+        statusElement.textContent = "تم الاتصال بنجاح";
+
+        // الانتقال إلى الصفحة الرئيسية
+        if (window.loadPage) {
+            window.loadPage("home");
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        statusElement.textContent =
+            error.message || "حدث خطأ أثناء الاتصال";
+
+        connectButton.disabled = false;
+    }
+});
 
 
     /* =========================================
