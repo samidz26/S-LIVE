@@ -3,80 +3,86 @@ const express = require("express");
 const {
     connectToTikTok,
     disconnectFromTikTok,
-    getConnectionStatus
+    getConnectionStatus,
+    liveEvents
 } = require("../connection/tiktokConnection");
 
 const router = express.Router();
 
 
-/* =========================================
-   الاتصال
-========================================= */
+/*
+=========================================
+CONNECT
+=========================================
+*/
 
-router.post("/connect", async (req, res) => {
+router.post(
+    "/connect",
+    async (req, res) => {
 
-    try {
+        try {
 
-        const username =
-            String(
-                req.body.username || ""
-            ).trim();
+            const username =
+                String(
+                    req.body.username || ""
+                ).trim();
 
+            if (!username) {
 
-        if (!username) {
+                return res.status(400).json({
 
-            return res.status(400).json({
-                success: false,
-                message:
-                    "يرجى إدخال اسم مستخدم TikTok"
+                    success: false,
+
+                    message:
+                        "يرجى إدخال اسم مستخدم TikTok"
+
+                });
+
+            }
+
+            const result =
+                await connectToTikTok(
+                    username
+                );
+
+            return res.json({
+
+                success: true,
+
+                username:
+                    result.username,
+
+                roomId:
+                    result.roomId
+
             });
-        }
 
+        } catch (error) {
 
-        const result =
-            await connectToTikTok(
-                username
+            console.error(
+                "S-LIVE TikTok connection error:",
+                error
             );
 
+            return res.status(500).json({
 
-        return res.json({
+                success: false,
 
-            success: true,
+                message:
+                    error.message ||
+                    "تعذر الاتصال باللايف"
 
-            username:
-                result.username,
-
-            roomId:
-                result.roomId
-
-        });
-
-    } catch (error) {
-
-        console.error(
-            "S-LIVE TikTok connection error:",
-            error
-        );
-
-
-        return res.status(500).json({
-
-            success: false,
-
-            message:
-                error.message ||
-                "تعذر الاتصال باللايف"
-
-        });
-
+            });
+        }
     }
+);
 
-});
 
-
-/* =========================================
-   قطع الاتصال
-========================================= */
+/*
+=========================================
+DISCONNECT
+=========================================
+*/
 
 router.post(
     "/disconnect",
@@ -101,16 +107,16 @@ router.post(
                     "تعذر قطع الاتصال"
 
             });
-
         }
-
     }
 );
 
 
-/* =========================================
-   حالة الاتصال
-========================================= */
+/*
+=========================================
+STATUS
+=========================================
+*/
 
 router.get(
     "/status",
@@ -118,6 +124,115 @@ router.get(
 
         return res.json(
             getConnectionStatus()
+        );
+
+    }
+);
+
+
+/*
+=========================================
+LIVE EVENTS - SSE
+
+Home تفتح هذا الاتصال
+وتنتظر الأحداث القادمة من TikTok
+=========================================
+*/
+
+router.get(
+    "/events",
+    (req, res) => {
+
+        res.setHeader(
+            "Content-Type",
+            "text/event-stream"
+        );
+
+        res.setHeader(
+            "Cache-Control",
+            "no-cache"
+        );
+
+        res.setHeader(
+            "Connection",
+            "keep-alive"
+        );
+
+        res.setHeader(
+            "X-Accel-Buffering",
+            "no"
+        );
+
+        res.flushHeaders();
+
+
+        /*
+        ---------------------------------
+        إرسال حدث دخول شخص
+        ---------------------------------
+        */
+
+        const sendMember = (member) => {
+
+            res.write(
+                `event: member\n`
+            );
+
+            res.write(
+                `data: ${JSON.stringify(member)}\n\n`
+            );
+        };
+
+
+        /*
+        الاستماع لأحداث دخول الأشخاص
+        */
+
+        liveEvents.on(
+            "member",
+            sendMember
+        );
+
+
+        /*
+        نبض كل 25 ثانية
+        حتى يبقى الاتصال مفتوحًا
+        */
+
+        const heartbeat =
+            setInterval(() => {
+
+                res.write(
+                    `: heartbeat\n\n`
+                );
+
+            }, 25000);
+
+
+        /*
+        ---------------------------------
+        إغلاق الصفحة
+        ---------------------------------
+        */
+
+        req.on(
+            "close",
+            () => {
+
+                clearInterval(
+                    heartbeat
+                );
+
+                liveEvents.off(
+                    "member",
+                    sendMember
+                );
+
+                console.log(
+                    "S-LIVE: Home events disconnected"
+                );
+
+            }
         );
 
     }
