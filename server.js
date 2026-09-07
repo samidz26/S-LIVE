@@ -1,20 +1,32 @@
 const express = require("express");
 const path = require("path");
 
+const apiRoutes =
+    require("./server/api/routes");
+
+const connectionRoutes =
+    require("./server/api/connection");
+
+
 const app = express();
 
-const PORT = process.env.PORT || 3000;
+const PORT =
+    process.env.PORT || 3000;
 
 
 /* =========================================
    إعدادات Express
 ========================================= */
 
-app.use(express.json());
+app.use(
+    express.json()
+);
 
-app.use(express.urlencoded({
-    extended: true
-}));
+app.use(
+    express.urlencoded({
+        extended: true
+    })
+);
 
 
 /* =========================================
@@ -23,8 +35,24 @@ app.use(express.urlencoded({
 
 app.use(
     express.static(
-        path.join(__dirname)
+        __dirname
     )
+);
+
+
+/* =========================================
+   API
+========================================= */
+
+app.use(
+    "/api",
+    apiRoutes
+);
+
+
+app.use(
+    "/api/connection",
+    connectionRoutes
 );
 
 
@@ -32,51 +60,52 @@ app.use(
    الصفحة الرئيسية
 ========================================= */
 
-app.get("/", (req, res) => {
+app.get(
+    "/",
+    (req, res) => {
 
-    res.sendFile(
-        path.join(
-            __dirname,
-            "index.html"
-        )
-    );
+        res.sendFile(
+            path.join(
+                __dirname,
+                "index.html"
+            )
+        );
 
-});
-
-
-/* =========================================
-   API - حالة السيرفر
-========================================= */
-
-app.get("/api/status", (req, res) => {
-
-    res.json({
-
-        success: true,
-
-        project: "S-LIVE",
-
-        server: "online",
-
-        timestamp: Date.now()
-
-    });
-
-});
+    }
+);
 
 
 /* =========================================
    تشغيل السيرفر
 ========================================= */
 
-app.listen(PORT, () => {
+app.listen(
+    PORT,
+    () => {
 
-    console.log("");
-    console.log("=================================");
-    console.log("        S-LIVE SERVER");
-    console.log("=================================");
-    console.log(`Server running on port ${PORT}`);
-    console.log("=================================");
-    console.log("");
+        console.log("");
 
-});
+        console.log(
+            "================================="
+        );
+
+        console.log(
+            "        S-LIVE SERVER"
+        );
+
+        console.log(
+            "================================="
+        );
+
+        console.log(
+            `Server running on port ${PORT}`
+        );
+
+        console.log(
+            "================================="
+        );
+
+        console.log("");
+
+    }
+);
