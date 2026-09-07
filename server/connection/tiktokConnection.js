@@ -56,11 +56,10 @@ async function connectToTikTok(username) {
     connection.on(
     WebcastEvent.MEMBER,
     (data) => {
-
-        console.log(
-            "S-LIVE MEMBER DATA:",
-            JSON.stringify(data, null, 2)
-        );
+console.log(
+    "S-LIVE MEMBER DATA:",
+    JSON.stringify(data, null, 2)
+);
 
         const user =
             data?.user || data;
