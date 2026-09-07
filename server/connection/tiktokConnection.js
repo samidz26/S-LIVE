@@ -6,6 +6,13 @@ let activeConnection = null;
 let activeUsername = null;
 let activeRoomId = null;
 
+
+/*
+=========================================
+CONNECT TO TIKTOK LIVE
+=========================================
+*/
+
 async function connectToTikTok(username) {
 
     const cleanUsername =
@@ -14,29 +21,80 @@ async function connectToTikTok(username) {
             .replace(/^@+/, "");
 
     if (!cleanUsername) {
-        throw new Error("اسم المستخدم غير صالح");
+        throw new Error(
+            "اسم المستخدم غير صالح"
+        );
     }
+
+
+    /*
+    تحميل مكتبة TikTok
+    */
 
     const module =
-        await import("tiktok-live-connector");
+        await import(
+            "tiktok-live-connector"
+        );
 
-    const { TikTokLiveConnection, WebcastEvent } = module;
+
+    const {
+        TikTokLiveConnection,
+        WebcastEvent
+    } = module;
+
 
     if (!TikTokLiveConnection) {
-        throw new Error("TikTokLiveConnection غير متوفر");
+        throw new Error(
+            "TikTokLiveConnection غير متوفر"
+        );
     }
 
+
+    /*
+    =========================================
+    إغلاق الاتصال السابق
+    =========================================
+    */
+
     if (activeConnection) {
+
         try {
+
             await activeConnection.disconnect();
+
         } catch (error) {
-            console.log("Previous TikTok connection closed.");
+
+            console.log(
+                "S-LIVE: Previous connection closed"
+            );
+
         }
 
         activeConnection = null;
     }
 
-    console.log(`S-LIVE: Connecting to @${cleanUsername}`);
+
+    console.log("");
+    console.log(
+        "================================="
+    );
+    console.log(
+        "S-LIVE: TIKTOK CONNECTION"
+    );
+    console.log(
+        "================================="
+    );
+
+    console.log(
+        `Connecting to @${cleanUsername}`
+    );
+
+
+    /*
+    =========================================
+    إنشاء الاتصال
+    =========================================
+    */
 
     const connection =
         new TikTokLiveConnection(
@@ -47,76 +105,275 @@ async function connectToTikTok(username) {
             }
         );
 
+
     /*
     =========================================
-    حدث دخول شخص جديد
+    MEMBER EVENT
+    شخص جديد يدخل اللايف
     =========================================
     */
 
     connection.on(
-    WebcastEvent.MEMBER,
-    (data) => {
-console.log(
-    "S-LIVE MEMBER DATA:",
-    JSON.stringify(data, null, 2)
-);
+        WebcastEvent.MEMBER,
+        (data) => {
 
-        const user =
-            data?.user || data;
+            /*
+            ---------------------------------
+            طباعة البيانات الأصلية
+            ---------------------------------
+            */
 
-        if (!user) {
             console.log(
-                "S-LIVE: MEMBER event without user"
+                "S-LIVE MEMBER DATA:"
             );
-            return;
+
+            console.log(
+                JSON.stringify(
+                    data,
+                    null,
+                    2
+                )
+            );
+
+
+            /*
+            ---------------------------------
+            بيانات العضو
+            ---------------------------------
+            
+            في الإصدار الحالي:
+            
+            data.uniqueId
+            data.nickname
+            data.profilePictureUrl
+            
+            */
+
+            const uniqueId =
+                data?.uniqueId ||
+                data?.user?.uniqueId ||
+                "";
+
+
+            const nickname =
+                data?.nickname ||
+                data?.user?.nickname ||
+                uniqueId ||
+                "TikTok User";
+
+
+            /*
+            ---------------------------------
+            جمع جميع روابط الصور المتاحة
+            ---------------------------------
+            */
+
+            const profilePictures = [];
+
+
+            /*
+            الصورة الرئيسية
+            */
+
+            if (
+                data?.profilePictureUrl
+            ) {
+
+                profilePictures.push(
+                    data.profilePictureUrl
+                );
+
+            }
+
+
+            /*
+            الصور الموجودة داخل
+            userDetails
+            */
+
+            if (
+                Array.isArray(
+                    data?.userDetails
+                        ?.profilePictureUrls
+                )
+            ) {
+
+                profilePictures.push(
+                    ...data.userDetails
+                        .profilePictureUrls
+                );
+
+            }
+
+
+            /*
+            في حال كانت البنية user
+            */
+
+            if (
+                data?.user
+                    ?.profilePictureUrl
+            ) {
+
+                profilePictures.push(
+                    data.user.profilePictureUrl
+                );
+
+            }
+
+
+            if (
+                Array.isArray(
+                    data?.user
+                        ?.userDetails
+                        ?.profilePictureUrls
+                )
+            ) {
+
+                profilePictures.push(
+                    ...data.user
+                        .userDetails
+                        .profilePictureUrls
+                );
+
+            }
+
+
+            /*
+            إزالة التكرار
+            */
+
+            const uniquePictures =
+                [
+                    ...new Set(
+                        profilePictures
+                            .filter(Boolean)
+                    )
+                ];
+
+
+            /*
+            ---------------------------------
+            إنشاء بيانات العضو
+            ---------------------------------
+            */
+
+            const member = {
+
+                uniqueId,
+
+                nickname,
+
+                profilePictureUrl:
+                    uniquePictures[0] || "",
+
+                profilePictures:
+                    uniquePictures,
+
+                joinedAt:
+                    Date.now()
+
+            };
+
+
+            /*
+            ---------------------------------
+            LOG
+            ---------------------------------
+            */
+
+            console.log(
+                "S-LIVE NEW MEMBER:"
+            );
+
+            console.log(
+                `Name: ${member.nickname}`
+            );
+
+            console.log(
+                `Username: @${member.uniqueId}`
+            );
+
+            console.log(
+                `Profile images: ${member.profilePictures.length}`
+            );
+
+
+            if (
+                member.profilePictureUrl
+            ) {
+
+                console.log(
+                    "S-LIVE PROFILE:",
+                    member.profilePictureUrl
+                );
+
+            } else {
+
+                console.log(
+                    "S-LIVE PROFILE: NO IMAGE"
+                );
+
+            }
+
+
+            /*
+            ---------------------------------
+            إرسال العضو إلى Home
+            ---------------------------------
+            */
+
+            liveEvents.emit(
+                "member",
+                member
+            );
+
         }
+    );
 
-        console.log(
-            "S-LIVE USER DATA:",
-            JSON.stringify(user, null, 2)
-        );
 
-        const member = {
+    /*
+    =========================================
+    معالجة أخطاء TikTok
+    =========================================
+    */
 
-            uniqueId:
-                user.uniqueId || "",
+    connection.on(
+        "error",
+        (error) => {
 
-            nickname:
-                user.nickname ||
-                user.uniqueId ||
-                "TikTok User",
+            console.error(
+                "S-LIVE TikTok ERROR:",
+                error
+            );
 
-            profilePictureUrl:
-                user.profilePictureUrl ||
-                user.userDetails?.profilePictureUrls?.[0] ||
-                "",
+        }
+    );
 
-            profilePictures:
-                user.userDetails?.profilePictureUrls || [],
 
-            joinedAt:
-                Date.now()
-        };
-
-        console.log(
-            "S-LIVE FINAL MEMBER:",
-            JSON.stringify(member, null, 2)
-        );
-
-        liveEvents.emit(
-            "member",
-            member
-        );
-    }
-); 
-    
+    /*
+    =========================================
+    الاتصال
+    =========================================
+    */
 
     const state =
         await connection.connect();
 
-    activeConnection = connection;
-    activeUsername = cleanUsername;
-    activeRoomId = state.roomId;
+
+    /*
+    حفظ الاتصال
+    */
+
+    activeConnection =
+        connection;
+
+    activeUsername =
+        cleanUsername;
+
+    activeRoomId =
+        state.roomId;
+
 
     console.log(
         `S-LIVE: Connected to @${cleanUsername}`
@@ -126,12 +383,31 @@ console.log(
         `S-LIVE: Room ID: ${state.roomId}`
     );
 
+    console.log(
+        "================================="
+    );
+
+    console.log("");
+
+
     return {
-        username: activeUsername,
-        roomId: activeRoomId
+
+        username:
+            activeUsername,
+
+        roomId:
+            activeRoomId
+
     };
+
 }
 
+
+/*
+=========================================
+DISCONNECT
+=========================================
+*/
 
 async function disconnectFromTikTok() {
 
@@ -139,41 +415,77 @@ async function disconnectFromTikTok() {
         return;
     }
 
+
     try {
+
         await activeConnection.disconnect();
+
     } catch (error) {
+
         console.error(
             "S-LIVE disconnect error:",
             error
         );
+
     }
 
+
     activeConnection = null;
+
     activeUsername = null;
+
     activeRoomId = null;
+
 
     console.log(
         "S-LIVE: TikTok disconnected"
     );
+
 }
 
+
+/*
+=========================================
+CONNECTION STATUS
+=========================================
+*/
 
 function getConnectionStatus() {
 
     return {
+
         success: true,
-        connected: Boolean(activeConnection),
-        username: activeUsername,
-        roomId: activeRoomId
+
+        connected:
+            Boolean(
+                activeConnection
+            ),
+
+        username:
+            activeUsername,
+
+        roomId:
+            activeRoomId
+
     };
+
 }
 
+
+/*
+=========================================
+EXPORTS
+=========================================
+*/
 
 module.exports = {
 
     connectToTikTok,
+
     disconnectFromTikTok,
+
     getConnectionStatus,
+
     liveEvents
 
 }; 
