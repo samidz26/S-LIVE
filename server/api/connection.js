@@ -1,178 +1,213 @@
 const express = require("express");
 
 const {
-    connectToTikTok,
-    disconnectFromTikTok,
-    getConnectionStatus,
-    liveEvents
+connectToTikTok,
+disconnectFromTikTok,
+getConnectionStatus,
+liveEvents
 } = require("../connection/tiktokConnection");
 
 const router = express.Router();
 
-
 /*
-=========================================
+
 CONNECT
-=========================================
+
 */
 
 router.post(
-    "/connect",
-    async (req, res) => {
+"/connect",
+async (req, res) => {
 
-        try {
+    try {
 
-            const username =
-                String(
-                    req.body.username || ""
-                ).trim();
+        const username =
+            String(
+                req.body?.username || ""
+            ).trim();
 
-            if (!username) {
+        if (!username) {
 
-                return res.status(400).json({
-
-                    success: false,
-
-                    message:
-                        "يرجى إدخال اسم مستخدم TikTok"
-
-                });
-
-            }
-
-            const result =
-                await connectToTikTok(
-                    username
-                );
-
-            return res.json({
-
-                success: true,
-
-                username:
-                    result.username,
-
-                roomId:
-                    result.roomId
-
+            return res.status(400).json({
+                success: false,
+                message:
+                    "يرجى إدخال اسم مستخدم TikTok"
             });
 
-        } catch (error) {
+        }
 
-            console.error(
-                "S-LIVE TikTok connection error:",
-                error
+        const result =
+            await connectToTikTok(
+                username
             );
 
-            return res.status(500).json({
+        return res.json({
 
-                success: false,
+            success: true,
 
-                message:
-                    error.message ||
-                    "تعذر الاتصال باللايف"
+            connected: true,
 
-            });
-        }
+            username:
+                result.username,
+
+            roomId:
+                result.roomId,
+
+            profilePictureUrl:
+                result.profilePictureUrl || ""
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            "S-LIVE TikTok connection error:",
+            error
+        );
+
+        return res.status(500).json({
+
+            success: false,
+
+            connected: false,
+
+            message:
+                error?.message ||
+                "تعذر الاتصال باللايف"
+
+        });
+
     }
+
+}
+
 );
 
-
 /*
-=========================================
+
 DISCONNECT
-=========================================
+
 */
 
 router.post(
-    "/disconnect",
-    async (req, res) => {
+"/disconnect",
+async (req, res) => {
 
-        try {
+    try {
 
-            await disconnectFromTikTok();
+        await disconnectFromTikTok();
 
-            return res.json({
-                success: true
-            });
+        return res.json({
 
-        } catch (error) {
+            success: true,
 
-            return res.status(500).json({
+            connected: false
 
-                success: false,
+        });
 
-                message:
-                    error.message ||
-                    "تعذر قطع الاتصال"
+    } catch (error) {
 
-            });
-        }
+        console.error(
+            "S-LIVE disconnect error:",
+            error
+        );
+
+        return res.status(500).json({
+
+            success: false,
+
+            message:
+                error?.message ||
+                "تعذر قطع الاتصال"
+
+        });
+
     }
+
+}
+
 );
 
-
 /*
-=========================================
+
 STATUS
-=========================================
+
 */
 
 router.get(
-    "/status",
-    (req, res) => {
+"/status",
+(req, res) => {
 
-        return res.json(
-            getConnectionStatus()
-        );
+    return res.json(
+        getConnectionStatus()
+    );
 
-    }
+}
+
 );
 
-
 /*
-=========================================
+
 LIVE EVENTS - SSE
 
-Home تفتح هذا الاتصال
-وتنتظر الأحداث القادمة من TikTok
-=========================================
 */
 
 router.get(
-    "/events",
-    (req, res) => {
+"/events",
+(req, res) => {
 
-        res.setHeader(
-            "Content-Type",
-            "text/event-stream"
-        );
+    res.setHeader(
+        "Content-Type",
+        "text/event-stream"
+    );
 
-        res.setHeader(
-            "Cache-Control",
-            "no-cache"
-        );
+    res.setHeader(
+        "Cache-Control",
+        "no-cache, no-transform"
+    );
 
-        res.setHeader(
-            "Connection",
-            "keep-alive"
-        );
+    res.setHeader(
+        "Connection",
+        "keep-alive"
+    );
 
-        res.setHeader(
-            "X-Accel-Buffering",
-            "no"
-        );
+    res.setHeader(
+        "X-Accel-Buffering",
+        "no"
+    );
 
-        res.flushHeaders();
+    res.flushHeaders();
 
 
-        /*
-        ---------------------------------
-        إرسال حدث دخول شخص
-        ---------------------------------
-        */
+    /*
+    إرسال حالة الاتصال
+    عند فتح SSE
+    */
 
-        const sendMember = (member) => {
+    const status =
+        getConnectionStatus();
+
+    res.write(
+        `event: status\n`
+    );
+
+    res.write(
+        `data: ${JSON.stringify(status)}\n\n`
+    );
+
+
+    /*
+    ---------------------------------
+    MEMBER EVENT
+    ---------------------------------
+    */
+
+    const sendMember =
+        (member) => {
+
+            if (res.writableEnded) {
+                return;
+            }
 
             res.write(
                 `event: member\n`
@@ -181,62 +216,217 @@ router.get(
             res.write(
                 `data: ${JSON.stringify(member)}\n\n`
             );
+
         };
 
 
-        /*
-        الاستماع لأحداث دخول الأشخاص
-        */
-
-        liveEvents.on(
-            "member",
-            sendMember
-        );
+    liveEvents.on(
+        "member",
+        sendMember
+    );
 
 
-        /*
-        نبض كل 25 ثانية
-        حتى يبقى الاتصال مفتوحًا
-        */
+    /*
+    ---------------------------------
+    CONNECTION EVENT
+    ---------------------------------
+    */
 
-        const heartbeat =
-            setInterval(() => {
+    const sendConnection =
+        (data) => {
 
-                res.write(
-                    `: heartbeat\n\n`
-                );
+            if (res.writableEnded) {
+                return;
+            }
 
-            }, 25000);
+            res.write(
+                `event: connection\n`
+            );
+
+            res.write(
+                `data: ${JSON.stringify(data)}\n\n`
+            );
+
+        };
 
 
-        /*
-        ---------------------------------
-        إغلاق الصفحة
-        ---------------------------------
-        */
+    liveEvents.on(
+        "connection",
+        sendConnection
+    );
 
-        req.on(
-            "close",
+
+    /*
+    ---------------------------------
+    DISCONNECT EVENT
+    ---------------------------------
+    */
+
+    const sendDisconnect =
+        (data) => {
+
+            if (res.writableEnded) {
+                return;
+            }
+
+            res.write(
+                `event: disconnect\n`
+            );
+
+            res.write(
+                `data: ${JSON.stringify(data)}\n\n`
+            );
+
+        };
+
+
+    liveEvents.on(
+        "disconnect",
+        sendDisconnect
+    );
+
+
+    /*
+    ---------------------------------
+    HEARTBEAT
+    ---------------------------------
+    */
+
+    const heartbeat =
+        setInterval(
             () => {
 
-                clearInterval(
-                    heartbeat
-                );
+                if (
+                    !res.writableEnded
+                ) {
 
-                liveEvents.off(
-                    "member",
-                    sendMember
-                );
+                    res.write(
+                        `: heartbeat\n\n`
+                    );
 
-                console.log(
-                    "S-LIVE: Home events disconnected"
-                );
+                }
 
-            }
+            },
+            25000
         );
 
-    }
+
+    /*
+    ---------------------------------
+    CLIENT DISCONNECTED
+    ---------------------------------
+    */
+
+    req.on(
+        "close",
+        () => {
+
+            clearInterval(
+                heartbeat
+            );
+
+            liveEvents.off(
+                "member",
+                sendMember
+            );
+
+            liveEvents.off(
+                "connection",
+                sendConnection
+            );
+
+            liveEvents.off(
+                "disconnect",
+                sendDisconnect
+            );
+
+            console.log(
+                "S-LIVE: SSE client disconnected"
+            );
+
+        }
+    );
+
+}
+
 );
 
+/*
+
+PROXY IMAGE
+
+نستخدمه عند الحاجة لعرض صورة
+TikTok من خلال السيرفر.
+
+*/
+
+router.get(
+"/proxy-image",
+async (req, res) => {
+
+    const imageUrl =
+        req.query.url;
+
+    if (
+        !imageUrl ||
+        typeof imageUrl !== "string" ||
+        !imageUrl.startsWith("https://")
+    ) {
+
+        return res.status(400).end();
+
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                imageUrl
+            );
+
+        if (!response.ok) {
+
+            return res.status(502).end();
+
+        }
+
+        const contentType =
+            response.headers.get(
+                "content-type"
+            ) || "image/jpeg";
+
+        res.setHeader(
+            "Content-Type",
+            contentType
+        );
+
+        res.setHeader(
+            "Cache-Control",
+            "public, max-age=300"
+        );
+
+        const buffer =
+            Buffer.from(
+                await response.arrayBuffer()
+            );
+
+        return res.end(
+            buffer
+        );
+
+    } catch (error) {
+
+        console.error(
+            "S-LIVE proxy-image error:",
+            error
+        );
+
+        return res.status(502).end();
+
+    }
+
+}
+
+);
 
 module.exports = router;
