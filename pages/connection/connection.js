@@ -1,384 +1,385 @@
-document.addEventListener(
-"DOMContentLoaded",
-() => {
+(function () {
 
-    initializeConnectionPage();
-
-}
-
-);
-
-/* =========================================
-INITIALIZE
-========================================= */
-
-function initializeConnectionPage() {
-
-const usernameInput =
-    document.getElementById(
-        "username"
-    );
-
-const connectButton =
-    document.getElementById(
-        "connect-btn"
-    );
-
-const status =
-    document.getElementById(
-        "connection-status"
+    console.log(
+        "S-LIVE: Connection page initialized"
     );
 
 
-if (
-    !usernameInput ||
-    !connectButton ||
-    !status
-) {
+    /* =========================================
+       ELEMENTS
+    ========================================= */
 
-    console.error(
-        "S-LIVE: Connection page elements not found"
-    );
+    const usernameInput =
+        document.getElementById(
+            "username"
+        );
 
-    return;
+    const connectButton =
+        document.getElementById(
+            "connect-btn"
+        );
 
-}
-
-
-connectButton.addEventListener(
-    "click",
-    () => {
-
-        connectToLive();
-
-    }
-);
-
-
-usernameInput.addEventListener(
-    "keydown",
-    (event) => {
-
-        if (
-            event.key === "Enter"
-        ) {
-
-            connectToLive();
-
-        }
-
-    }
-);
-
-
-/*
-إزالة @ من البداية
-*/
-
-usernameInput.addEventListener(
-    "input",
-    () => {
-
-        usernameInput.value =
-            usernameInput.value
-                .replace(/^@+/, "");
-
-    }
-);
-
-}
-
-/* =========================================
-CONNECT
-========================================= */
-
-async function connectToLive() {
-
-const usernameInput =
-    document.getElementById(
-        "username"
-    );
-
-const connectButton =
-    document.getElementById(
-        "connect-btn"
-    );
-
-const status =
-    document.getElementById(
-        "connection-status"
-    );
-
-
-if (
-    !usernameInput ||
-    !connectButton ||
-    !status
-) {
-
-    return;
-
-}
-
-
-const username =
-    usernameInput.value
-        .trim()
-        .replace(/^@+/, "");
-
-
-/*
-التحقق من الاسم
-*/
-
-if (!username) {
-
-    setStatus(
-        "يرجى إدخال اسم مستخدم TikTok",
-        "error"
-    );
-
-    usernameInput.focus();
-
-    return;
-
-}
-
-
-/*
-حالة الاتصال
-*/
-
-connectButton.disabled = true;
-
-connectButton.textContent =
-    "جاري الاتصال...";
-
-
-setStatus(
-    "جاري الاتصال باللايف...",
-    "connecting"
-);
-
-
-try {
-
-    const response =
-        await fetch(
-            "/api/connection/connect",
-            {
-
-                method: "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body:
-                    JSON.stringify({
-                        username:
-                            username
-                    })
-
-            }
+    const connectionStatus =
+        document.getElementById(
+            "connection-status"
         );
 
 
-    const data =
-        await response.json();
-
-
     /*
-    فشل الاتصال
+        التأكد من وجود العناصر
     */
 
     if (
-        !response.ok ||
-        !data.success
+        !usernameInput ||
+        !connectButton ||
+        !connectionStatus
     ) {
 
-        throw new Error(
-            data.message ||
-            "تعذر الاتصال باللايف"
+        console.error(
+            "S-LIVE: Connection elements not found"
         );
 
+        return;
     }
 
 
-    /*
-    حفظ معلومات الاتصال
-    */
+    /* =========================================
+       EVENTS
+    ========================================= */
 
-    localStorage.setItem(
-        "s_live_username",
-        data.username ||
-        username
+    connectButton.addEventListener(
+        "click",
+        startConnection
     );
 
 
-    localStorage.setItem(
-        "s_live_connected",
-        "true"
-    );
-
-
-    if (
-        data.roomId
-    ) {
-
-        localStorage.setItem(
-            "s_live_room_id",
-            data.roomId
-        );
-
-    }
-
-
-    if (
-        data.profilePictureUrl
-    ) {
-
-        localStorage.setItem(
-            "s_live_profile_picture",
-            data.profilePictureUrl
-        );
-
-    }
-
-
-    /*
-    نجاح
-    */
-
-    setStatus(
-        "تم الاتصال باللايف ✓",
-        "connected"
-    );
-
-
-    /*
-    الانتقال إلى Home
-    */
-
-    setTimeout(
-        () => {
+    usernameInput.addEventListener(
+        "keydown",
+        function (event) {
 
             if (
-                window.SLive &&
-                typeof window.SLive.loadPage ===
-                    "function"
+                event.key === "Enter"
             ) {
 
-                window.SLive.loadPage(
-                    "home"
+                startConnection();
+            }
+        }
+    );
+
+
+    /* =========================================
+       START CONNECTION
+    ========================================= */
+
+    async function startConnection() {
+
+        let username =
+            usernameInput.value.trim();
+
+
+        /*
+            التحقق من الإدخال
+        */
+
+        if (!username) {
+
+            setStatus(
+                "يرجى إدخال اسم مستخدم TikTok",
+                "error"
+            );
+
+            usernameInput.focus();
+
+            return;
+        }
+
+
+        /*
+            إزالة @
+        */
+
+        username =
+            username.replace(
+                /^@+/,
+                ""
+            );
+
+
+        /*
+            إزالة المسافات
+        */
+
+        username =
+            username.replace(
+                /\s+/g,
+                ""
+            );
+
+
+        /*
+            التحقق مرة أخرى
+        */
+
+        if (!username) {
+
+            setStatus(
+                "اسم المستخدم غير صالح",
+                "error"
+            );
+
+            return;
+        }
+
+
+        /*
+            عرض الاسم بالشكل الصحيح
+        */
+
+        usernameInput.value =
+            "@" + username;
+
+
+        /* =====================================
+           UI - CONNECTING
+        ===================================== */
+
+        connectButton.disabled =
+            true;
+
+        connectButton.textContent =
+            "جاري الاتصال...";
+
+
+        setStatus(
+            "جاري الاتصال باللايف...",
+            "connecting"
+        );
+
+
+        /* =====================================
+           SERVER REQUEST
+        ===================================== */
+
+        try {
+
+            console.log(
+                `S-LIVE: Connecting to @${username}`
+            );
+
+
+            const response =
+                await fetch(
+                    "/api/connection/connect",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify({
+                                username:
+                                    username
+                            })
+                    }
+                );
+
+
+            /*
+                محاولة قراءة JSON
+            */
+
+            let data;
+
+            try {
+
+                data =
+                    await response.json();
+
+            } catch (jsonError) {
+
+                throw new Error(
+                    "السيرفر لم يُرجع استجابة صحيحة"
+                );
+            }
+
+
+            /*
+                فشل الاتصال
+            */
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+
+                throw new Error(
+                    data.message ||
+                    "فشل الاتصال باللايف"
+                );
+            }
+
+
+            console.log(
+                "S-LIVE: TikTok connected",
+                data
+            );
+
+
+            /* =====================================
+               SAVE CONNECTION
+            ===================================== */
+
+            const connectedUsername =
+                data.username ||
+                username;
+
+
+            localStorage.setItem(
+                "s_live_username",
+                connectedUsername
+            );
+
+
+            localStorage.setItem(
+                "s_live_connected",
+                "true"
+            );
+
+
+            /*
+                حفظ Room ID إن توفر
+            */
+
+            if (data.roomId) {
+
+                localStorage.setItem(
+                    "s_live_room_id",
+                    String(data.roomId)
                 );
 
             } else {
 
-                console.error(
-                    "S-LIVE: SLIVE API not available"
+                localStorage.removeItem(
+                    "s_live_room_id"
                 );
-
             }
 
-        },
-        500
-    );
+
+            /* =====================================
+               SUCCESS
+            ===================================== */
+
+            setStatus(
+                "تم الاتصال بنجاح",
+                "connected"
+            );
 
 
-} catch (error) {
-
-    console.error(
-        "S-LIVE connection error:",
-        error
-    );
+            connectButton.textContent =
+                "تم الاتصال";
 
 
-    /*
-    حذف حالة اتصال قديمة
-    */
+            /*
+                الانتقال إلى Home
+            */
 
-    localStorage.removeItem(
-        "s_live_connected"
-    );
+            setTimeout(
+                function () {
 
+                    if (
+                        window.SLive &&
+                        typeof
+                            window.SLive.loadPage ===
+                            "function"
+                    ) {
 
-    /*
-    إظهار الخطأ
-    */
+                        window.SLive.loadPage(
+                            "home"
+                        );
 
-    setStatus(
-        error.message ||
-        "فشل الاتصال باللايف",
-        "error"
-    );
+                    } else {
 
+                        console.error(
+                            "S-LIVE: loadPage not available"
+                        );
+                    }
 
-    connectButton.disabled =
-        false;
-
-    connectButton.textContent =
-        "اتصال باللايف";
-
-}
-
-}
-
-/* =========================================
-STATUS
-========================================= */
-
-function setStatus(
-message,
-state
-) {
-
-const status =
-    document.getElementById(
-        "connection-status"
-    );
+                },
+                300
+            );
 
 
-if (!status) {
-    return;
-}
+        } catch (error) {
+
+            console.error(
+                "S-LIVE connection error:",
+                error
+            );
 
 
-const dot =
-    status.querySelector(
-        ".status-dot"
-    );
+            /* =====================================
+               ERROR
+            ===================================== */
+
+            setStatus(
+                error.message ||
+                "تعذر الاتصال باللايف",
+                "error"
+            );
 
 
-const text =
-    status.querySelector(
-        "span:last-child"
-    );
+            connectButton.disabled =
+                false;
 
-
-if (dot) {
-
-    dot.className =
-        "status-dot";
-
-
-    if (state) {
-
-        dot.classList.add(
-            state
-        );
-
+            connectButton.textContent =
+                "اتصال باللايف";
+        }
     }
 
-}
+
+    /* =========================================
+       SET STATUS
+    ========================================= */
+
+    function setStatus(
+        message,
+        state
+    ) {
+
+        const statusText =
+            connectionStatus.querySelector(
+                "span:last-child"
+            );
+
+        const statusDot =
+            connectionStatus.querySelector(
+                ".status-dot"
+            );
 
 
-if (text) {
+        if (statusText) {
 
-    text.textContent =
-        message;
+            statusText.textContent =
+                message;
+        }
 
-}
 
-}
+        if (statusDot) {
+
+            statusDot.className =
+                "status-dot";
+
+
+            if (state) {
+
+                statusDot.classList.add(
+                    state
+                );
+            }
+        }
+    }
+
+})();
