@@ -1,219 +1,384 @@
-document.addEventListener("DOMContentLoaded", () => {
-    initializeApp();
-});
-
-
 /* =========================================
-   INITIALIZE S-LIVE
+   S-LIVE APP
 ========================================= */
 
-async function initializeApp() {
+(function () {
 
-    console.log("S-LIVE: Initializing...");
+    "use strict";
 
-    const savedUsername =
-        localStorage.getItem("s_live_username");
 
-    const savedConnected =
-        localStorage.getItem("s_live_connected");
+    /* =========================================
+       GLOBAL STATE
+    ========================================= */
 
-    /*
-        لا يوجد اتصال محفوظ
-        → افتح صفحة الاتصال
-    */
+    let activePage = null;
+    let activePageScript = null;
+    let activePageStyle = null;
 
-    if (
-        savedConnected !== "true" ||
-        !savedUsername
-    ) {
-        console.log(
-            "S-LIVE: No saved connection"
+
+    /* =========================================
+       ELEMENTS
+    ========================================= */
+
+    function getAppScreen() {
+
+        return document.getElementById(
+            "app-screen"
         );
-
-        loadPage("connection");
-        return;
     }
 
 
-    /*
-        يوجد اتصال محفوظ
-        → نتحقق من السيرفر
-    */
+    /* =========================================
+       LOAD PAGE
+    ========================================= */
 
-    console.log(
-        `S-LIVE: Checking connection for @${savedUsername}`
-    );
+    async function loadPage(pageName) {
 
-    try {
+        const appScreen =
+            getAppScreen();
 
-        const response =
-            await fetch(
-                "/api/connection/status",
-                {
-                    method: "GET",
-                    cache: "no-store"
-                }
+
+        if (!appScreen) {
+
+            console.error(
+                "S-LIVE: #app-screen غير موجود"
             );
 
-        if (!response.ok) {
-            throw new Error(
-                "Connection status request failed"
-            );
+            return false;
         }
 
-        const data =
-            await response.json();
 
-        console.log(
-            "S-LIVE: Connection status:",
-            data
+        try {
+
+            /*
+             * تنظيف الصفحة السابقة
+             */
+
+            cleanupCurrentPage();
+
+
+            /*
+             * تحميل HTML
+             */
+
+            const response =
+                await fetch(
+                    `pages/${pageName}/${pageName}.html`,
+                    {
+                        cache: "no-store"
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    `تعذر تحميل الصفحة: ${pageName}`
+                );
+            }
+
+
+            const html =
+                await response.text();
+
+
+            appScreen.innerHTML =
+                html;
+
+
+            /*
+             * تحميل CSS
+             */
+
+            await loadPageStyles(
+                pageName
+            );
+
+
+            /*
+             * تحميل JS
+             */
+
+            await loadPageScript(
+                pageName
+            );
+
+
+            activePage =
+                pageName;
+
+
+            return true;
+
+
+        } catch (error) {
+
+            console.error(
+                "S-LIVE loadPage error:",
+                error
+            );
+
+
+            appScreen.innerHTML = `
+                <div style="
+                    width:100%;
+                    height:100%;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    text-align:center;
+                    color:#fff;
+                    font-family:inherit;
+                    padding:20px;
+                    box-sizing:border-box;
+                ">
+                    تعذر تحميل الصفحة
+                </div>
+            `;
+
+
+            return false;
+        }
+    }
+
+
+    /* =========================================
+       LOAD PAGE CSS
+    ========================================= */
+
+    function loadPageStyles(
+        pageName
+    ) {
+
+        return new Promise(
+            (resolve, reject) => {
+
+                const link =
+                    document.createElement(
+                        "link"
+                    );
+
+
+                link.id =
+                    "active-page-style";
+
+
+                link.rel =
+                    "stylesheet";
+
+
+                link.href =
+                    `pages/${pageName}/${pageName}.css`;
+
+
+                link.onload =
+                    function () {
+
+                        activePageStyle =
+                            link;
+
+                        resolve();
+                    };
+
+
+                link.onerror =
+                    function () {
+
+                        /*
+                         * بعض الصفحات قد لا تحتاج CSS
+                         */
+
+                        console.warn(
+                            `S-LIVE: تعذر تحميل CSS لـ ${pageName}`
+                        );
+
+                        resolve();
+                    };
+
+
+                document.head.appendChild(
+                    link
+                );
+            }
+        );
+    }
+
+
+    /* =========================================
+       LOAD PAGE JS
+    ========================================= */
+
+    function loadPageScript(
+        pageName
+    ) {
+
+        return new Promise(
+            (resolve, reject) => {
+
+                const script =
+                    document.createElement(
+                        "script"
+                    );
+
+
+                script.id =
+                    "active-page-script";
+
+
+                script.src =
+                    `pages/${pageName}/${pageName}.js`;
+
+
+                script.onload =
+                    function () {
+
+                        activePageScript =
+                            script;
+
+                        resolve();
+                    };
+
+
+                script.onerror =
+                    function () {
+
+                        console.warn(
+                            `S-LIVE: تعذر تحميل JS لـ ${pageName}`
+                        );
+
+                        resolve();
+                    };
+
+
+                document.body.appendChild(
+                    script
+                );
+            }
+        );
+    }
+
+
+    /* =========================================
+       CLEANUP CURRENT PAGE
+    ========================================= */
+
+    function cleanupCurrentPage() {
+
+        /*
+         * إشعار للصفحة الحالية
+         * إذا كانت تحتاج تنظيف مواردها.
+         */
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "s-live-page-changing",
+                {
+                    detail: {
+                        page:
+                            activePage
+                    }
+                }
+            )
         );
 
 
+        if (activePageScript) {
+
+            activePageScript.remove();
+
+            activePageScript =
+                null;
+        }
+
+
+        if (activePageStyle) {
+
+            activePageStyle.remove();
+
+            activePageStyle =
+                null;
+
+        } else {
+
+            const oldStyle =
+                document.getElementById(
+                    "active-page-style"
+                );
+
+            if (oldStyle) {
+                oldStyle.remove();
+            }
+        }
+
+
         /*
-            السيرفر ما زال متصلاً
-            → افتح Home مباشرة
-        */
+         * home.js يستخدم EventSource.
+         * نطلب منه إغلاقه قبل الانتقال.
+         */
 
-        if (
-            data.connected === true &&
-            data.username
-        ) {
+        window.dispatchEvent(
+            new CustomEvent(
+                "s-live-cleanup"
+            )
+        );
+    }
 
-            localStorage.setItem(
-                "s_live_username",
-                data.username
-            );
 
-            localStorage.setItem(
-                "s_live_connected",
-                "true"
-            );
+    /* =========================================
+       SESSION
+    ========================================= */
 
-            loadPage("home");
+    function getSavedUsername() {
 
+        return localStorage.getItem(
+            "s_live_username"
+        );
+    }
+
+
+    function saveSession(data) {
+
+        if (!data) {
             return;
         }
 
 
-        /*
-            السيرفر غير متصل.
+        if (data.username) {
 
-            نحاول إعادة الاتصال تلقائياً
-            باستخدام اسم المستخدم المحفوظ.
-        */
-
-        console.log(
-            "S-LIVE: Server is not connected"
-        );
-
-        await reconnectAutomatically(
-            savedUsername
-        );
-
-    } catch (error) {
-
-        console.error(
-            "S-LIVE: Initialization error:",
-            error
-        );
-
-        /*
-            إذا تعذر التحقق من السيرفر
-            لا نحذف البيانات مباشرة.
-
-            نفتح Home لأن المستخدم كان متصلاً
-            سابقاً.
-        */
-
-        loadPage("home");
-    }
-}
-
-
-/* =========================================
-   AUTOMATIC RECONNECT
-========================================= */
-
-async function reconnectAutomatically(
-    username
-) {
-
-    console.log(
-        `S-LIVE: Reconnecting to @${username}...`
-    );
-
-    try {
-
-        const response =
-            await fetch(
-                "/api/connection/connect",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-                    body: JSON.stringify({
-                        username:
-                            username
-                    })
-                }
-            );
-
-        const data =
-            await response.json();
-
-        if (
-            !response.ok ||
-            !data.success
-        ) {
-
-            throw new Error(
-                data.message ||
-                "Automatic reconnect failed"
+            localStorage.setItem(
+                "s_live_username",
+                String(data.username)
+                    .replace(/^@/, "")
             );
         }
 
 
-        console.log(
-            "S-LIVE: Automatic reconnect successful",
-            data
-        );
+        if (data.roomId) {
+
+            localStorage.setItem(
+                "s_live_room_id",
+                String(data.roomId)
+            );
+        }
 
 
-        localStorage.setItem(
-            "s_live_username",
-            data.username || username
-        );
+        if (data.profilePicture) {
+
+            localStorage.setItem(
+                "s_live_profile_picture",
+                data.profilePicture
+            );
+        }
+
 
         localStorage.setItem(
             "s_live_connected",
             "true"
         );
+    }
 
 
-        /*
-            بعد نجاح إعادة الاتصال
-            نذهب إلى Home
-        */
-
-        loadPage("home");
-
-    } catch (error) {
-
-        console.error(
-            "S-LIVE: Automatic reconnect failed:",
-            error
-        );
-
-
-        /*
-            إعادة الاتصال فشلت.
-
-            نحذف حالة الاتصال القديمة
-            ونرجع لصفحة الاتصال.
-        */
+    function clearSession() {
 
         localStorage.removeItem(
             "s_live_username"
@@ -223,233 +388,383 @@ async function reconnectAutomatically(
             "s_live_connected"
         );
 
-        loadPage("connection");
-    }
-}
-
-
-/* =========================================
-   LOAD PAGE
-========================================= */
-
-async function loadPage(pageName) {
-
-    const appScreen =
-        document.getElementById(
-            "app-screen"
+        localStorage.removeItem(
+            "s_live_room_id"
         );
 
-    if (!appScreen) {
-
-        console.error(
-            "S-LIVE: app-screen not found"
+        localStorage.removeItem(
+            "s_live_profile_picture"
         );
-
-        return;
     }
 
 
-    try {
+    /* =========================================
+       CONNECT
+    ========================================= */
 
-        /*
-            تحميل HTML
-        */
+    async function connect(username) {
+
+        const cleanUsername =
+            String(username || "")
+                .trim()
+                .replace(/^@/, "");
+
+
+        if (!cleanUsername) {
+
+            throw new Error(
+                "اسم المستخدم مطلوب"
+            );
+        }
+
 
         const response =
             await fetch(
-                `pages/${pageName}/${pageName}.html`
+                "/api/connection/connect",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            username:
+                                cleanUsername
+                        })
+                }
             );
+
+
+        const data =
+            await response.json()
+                .catch(() => ({}));
+
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message ||
+                "فشل الاتصال باللايف"
+            );
+        }
+
+
+        saveSession(data);
+
+
+        return data;
+    }
+
+
+    /* =========================================
+       DISCONNECT
+    ========================================= */
+
+    async function disconnect() {
+
+        try {
+
+            /*
+             * إغلاق الصفحة الحالية أولاً
+             * حتى يتم إغلاق SSE.
+             */
+
+            window.dispatchEvent(
+                new CustomEvent(
+                    "s-live-cleanup"
+                )
+            );
+
+
+            /*
+             * قطع اتصال TikTok
+             */
+
+            const response =
+                await fetch(
+                    "/api/connection/disconnect",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        }
+                    }
+                );
+
+
+            const data =
+                await response.json()
+                    .catch(() => ({}));
+
+
+            if (
+                !response.ok ||
+                data.success === false
+            ) {
+
+                throw new Error(
+                    data.message ||
+                    "تعذر قطع الاتصال"
+                );
+            }
+
+
+            return true;
+
+
+        } finally {
+
+            /*
+             * في كل الحالات نمسح
+             * جلسة المتصفح.
+             */
+
+            clearSession();
+        }
+    }
+
+
+    /* =========================================
+       CHECK SERVER STATUS
+    ========================================= */
+
+    async function getStatus() {
+
+        const response =
+            await fetch(
+                "/api/connection/status",
+                {
+                    cache: "no-store"
+                }
+            );
+
 
         if (!response.ok) {
 
             throw new Error(
-                `Failed to load page: ${pageName}`
+                "تعذر معرفة حالة الاتصال"
             );
         }
 
 
-        const html =
-            await response.text();
-
-
-        /*
-            وضع الصفحة داخل مساحة العرض
-        */
-
-        appScreen.innerHTML =
-            html;
-
-
-        /*
-            تحميل CSS الخاص بالصفحة
-        */
-
-        loadPageStyles(
-            pageName
-        );
-
-
-        /*
-            تحميل JavaScript الخاص بالصفحة
-        */
-
-        await loadPageScript(
-            pageName
-        );
-
-
-        console.log(
-            `S-LIVE: ${pageName} loaded successfully`
-        );
-
-    } catch (error) {
-
-        console.error(
-            "S-LIVE page error:",
-            error
-        );
-
-        appScreen.innerHTML = `
-            <div class="page-load-error">
-                حدث خطأ أثناء تحميل الصفحة
-            </div>
-        `;
-    }
-}
-
-
-/* =========================================
-   LOAD PAGE CSS
-========================================= */
-
-function loadPageStyles(
-    pageName
-) {
-
-    /*
-        حذف CSS الصفحة السابقة
-    */
-
-    const oldStyle =
-        document.getElementById(
-            "active-page-style"
-        );
-
-    if (oldStyle) {
-        oldStyle.remove();
+        return await response.json();
     }
 
 
-    /*
-        إنشاء رابط CSS جديد
-    */
+    /* =========================================
+       AUTOMATIC RECONNECT
+    ========================================= */
 
-    const style =
-        document.createElement(
-            "link"
-        );
+    async function reconnectAutomatically(
+        username
+    ) {
 
-    style.id =
-        "active-page-style";
-
-    style.rel =
-        "stylesheet";
-
-    style.href =
-        `pages/${pageName}/${pageName}.css`;
+        if (!username) {
+            return false;
+        }
 
 
-    document.head.appendChild(
-        style
-    );
-}
+        try {
 
-
-/* =========================================
-   LOAD PAGE JAVASCRIPT
-========================================= */
-
-function loadPageScript(
-    pageName
-) {
-
-    return new Promise(
-        (resolve, reject) => {
-
-            /*
-                حذف JS الصفحة السابقة
-            */
-
-            const oldScript =
-                document.getElementById(
-                    "active-page-script"
+            const data =
+                await connect(
+                    username
                 );
 
-            if (oldScript) {
-                oldScript.remove();
+
+            await loadPage(
+                "home"
+            );
+
+
+            return !!data.success;
+
+
+        } catch (error) {
+
+            console.error(
+                "S-LIVE automatic reconnect error:",
+                error
+            );
+
+
+            clearSession();
+
+            await loadPage(
+                "connection"
+            );
+
+
+            return false;
+        }
+    }
+
+
+    /* =========================================
+       INITIALIZE APP
+    ========================================= */
+
+    async function initializeApp() {
+
+        const savedUsername =
+            getSavedUsername();
+
+
+        /*
+         * لا توجد جلسة محفوظة
+         */
+
+        if (!savedUsername) {
+
+            await loadPage(
+                "connection"
+            );
+
+            return;
+        }
+
+
+        try {
+
+            const status =
+                await getStatus();
+
+
+            /*
+             * السيرفر ما زال متصلاً
+             */
+
+            if (
+                status.success &&
+                status.connected
+            ) {
+
+                /*
+                 * تحديث البيانات من السيرفر
+                 */
+
+                if (status.username) {
+
+                    localStorage.setItem(
+                        "s_live_username",
+                        String(status.username)
+                            .replace(/^@/, "")
+                    );
+                }
+
+
+                if (status.roomId) {
+
+                    localStorage.setItem(
+                        "s_live_room_id",
+                        String(status.roomId)
+                    );
+                }
+
+
+                if (status.profilePicture) {
+
+                    localStorage.setItem(
+                        "s_live_profile_picture",
+                        status.profilePicture
+                    );
+                }
+
+
+                localStorage.setItem(
+                    "s_live_connected",
+                    "true"
+                );
+
+
+                await loadPage(
+                    "home"
+                );
+
+
+                return;
             }
 
 
             /*
-                إنشاء Script جديد
-            */
+             * توجد جلسة في المتصفح
+             * لكن السيرفر غير متصل.
+             *
+             * نحاول إعادة الاتصال.
+             */
 
-            const script =
-                document.createElement(
-                    "script"
-                );
-
-            script.id =
-                "active-page-script";
-
-            script.src =
-                `pages/${pageName}/${pageName}.js`;
+            await reconnectAutomatically(
+                savedUsername
+            );
 
 
-            script.onload =
-                () => {
+        } catch (error) {
 
-                    console.log(
-                        `S-LIVE: ${pageName}.js loaded`
-                    );
-
-                    resolve();
-                };
+            console.error(
+                "S-LIVE startup status error:",
+                error
+            );
 
 
-            script.onerror =
-                () => {
+            /*
+             * لا نذهب مباشرة إلى home.
+             * نتحقق بمحاولة إعادة الاتصال.
+             */
 
-                    console.error(
-                        `S-LIVE: Failed to load ${pageName}.js`
-                    );
-
-                    reject(
-                        new Error(
-                            `Failed to load ${pageName}.js`
-                        )
-                    );
-                };
-
-
-            document.body.appendChild(
-                script
+            await reconnectAutomatically(
+                savedUsername
             );
         }
-    );
-}
+    }
 
 
-/* =========================================
-   GLOBAL S-LIVE API
-========================================= */
+    /* =========================================
+       PUBLIC API
+    ========================================= */
 
-window.SLive = {
+    window.SLive = {
 
-    loadPage,
+        loadPage,
 
-    initializeApp,
+        initializeApp,
 
-    reconnectAutomatically
+        connect,
 
-};
+        disconnect,
+
+        getStatus,
+
+        reconnectAutomatically,
+
+        clearSession
+    };
+
+
+    /* =========================================
+       START
+    ========================================= */
+
+    if (
+        document.readyState ===
+        "loading"
+    ) {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializeApp
+        );
+
+    } else {
+
+        initializeApp();
+    }
+
+})();
