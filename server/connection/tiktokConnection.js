@@ -54,57 +54,63 @@ async function connectToTikTok(username) {
     */
 
     connection.on(
-        WebcastEvent.MEMBER,
-        (data) => {
+    WebcastEvent.MEMBER,
+    (data) => {
 
-            const user = data?.user;
+        console.log(
+            "S-LIVE MEMBER DATA:",
+            JSON.stringify(data, null, 2)
+        );
 
-            if (!user) {
-                return;
-            }
+        const user =
+            data?.user || data;
 
-            const profilePictures =
-    user.userDetails?.profilePictureUrls || [];
-
-const member = {
-
-    uniqueId:
-        user.uniqueId || "",
-
-    nickname:
-        user.nickname ||
-        user.uniqueId ||
-        "TikTok User",
-
-    profilePictureUrl:
-        user.profilePictureUrl ||
-        profilePictures[0] ||
-        profilePictures[1] ||
-        profilePictures[2] ||
-        profilePictures[3] ||
-        "",
-
-    profilePictures,
-
-    joinedAt:
-        Date.now()
-};
-
+        if (!user) {
             console.log(
-                `S-LIVE: New member -> ${member.nickname} (@${member.uniqueId})`
+                "S-LIVE: MEMBER event without user"
             );
-
-            /*
-            إرسال آخر شخص دخل
-            إلى جميع صفحات Home المفتوحة
-            */
-
-            liveEvents.emit(
-                "member",
-                member
-            );
+            return;
         }
-    );
+
+        console.log(
+            "S-LIVE USER DATA:",
+            JSON.stringify(user, null, 2)
+        );
+
+        const member = {
+
+            uniqueId:
+                user.uniqueId || "",
+
+            nickname:
+                user.nickname ||
+                user.uniqueId ||
+                "TikTok User",
+
+            profilePictureUrl:
+                user.profilePictureUrl ||
+                user.userDetails?.profilePictureUrls?.[0] ||
+                "",
+
+            profilePictures:
+                user.userDetails?.profilePictureUrls || [],
+
+            joinedAt:
+                Date.now()
+        };
+
+        console.log(
+            "S-LIVE FINAL MEMBER:",
+            JSON.stringify(member, null, 2)
+        );
+
+        liveEvents.emit(
+            "member",
+            member
+        );
+    }
+); 
+    
 
     const state =
         await connection.connect();
