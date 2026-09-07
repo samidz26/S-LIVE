@@ -4,7 +4,6 @@ S-LIVE HOME
 
 .home-page {
 position: relative;
-
 width: 100%;
 height: 100%;
 
@@ -27,8 +26,8 @@ LIVE ACCOUNT
 .live-account {
 position: absolute;
 
-top: 10px;
-left: 10px;
+top: 8px;
+left: 8px;
 
 z-index: 1000;
 
@@ -41,19 +40,19 @@ ACCOUNT BUTTON
 ========================================= */
 
 .live-account-button {
-height: 40px;
-min-width: 132px;
+height: 36px;
+min-width: 118px;
 
-padding: 3px 8px 3px 4px;
+padding: 3px 7px 3px 4px;
 
 display: flex;
 align-items: center;
 
-gap: 7px;
+gap: 6px;
 
-border: 1px solid rgba(255, 179, 71, 0.30);
+border: 1px solid rgba(255, 179, 71, 0.28);
 
-border-radius: 22px;
+border-radius: 20px;
 
 background:
     linear-gradient(
@@ -63,8 +62,8 @@ background:
     );
 
 box-shadow:
-    0 4px 14px rgba(0, 0, 0, 0.30),
-    0 0 10px rgba(255, 165, 0, 0.06);
+    0 3px 12px rgba(0, 0, 0, 0.30),
+    0 0 9px rgba(255, 165, 0, 0.06);
 
 color: #fff;
 
@@ -80,11 +79,11 @@ font-family: inherit;
 }
 
 .live-account-button:hover {
-border-color: rgba(255, 179, 71, 0.65);
+border-color: rgba(255, 179, 71, 0.6);
 
 box-shadow:
-    0 5px 16px rgba(0, 0, 0, 0.40),
-    0 0 14px rgba(255, 165, 0, 0.12);
+    0 4px 15px rgba(0, 0, 0, 0.40),
+    0 0 12px rgba(255, 165, 0, 0.12);
 
 }
 
@@ -99,16 +98,16 @@ LIVE AVATAR
 .live-avatar-wrapper {
 position: relative;
 
-width: 30px;
-height: 30px;
+width: 27px;
+height: 27px;
 
-flex: 0 0 30px;
+flex: 0 0 27px;
 
 }
 
 .live-profile-image {
-width: 30px;
-height: 30px;
+width: 27px;
+height: 27px;
 
 display: block;
 
@@ -118,7 +117,7 @@ object-fit: cover;
 
 background: #222;
 
-border: 2px solid #ffb347;
+border: 1.5px solid #ffb347;
 
 box-sizing: border-box;
 
@@ -134,19 +133,19 @@ position: absolute;
 right: -1px;
 bottom: -1px;
 
-width: 9px;
-height: 9px;
+width: 8px;
+height: 8px;
 
 border-radius: 50%;
 
 background: #20e070;
 
-border: 2px solid #111;
+border: 1.5px solid #111;
 
 box-sizing: border-box;
 
 box-shadow:
-    0 0 6px rgba(32, 224, 112, 0.9);
+    0 0 5px rgba(32, 224, 112, 0.9);
 
 animation:
     liveStatusPulse 1.7s infinite;
@@ -173,7 +172,7 @@ line-height: 1.05;
 }
 
 .live-username {
-max-width: 78px;
+max-width: 68px;
 
 overflow: hidden;
 
@@ -183,7 +182,7 @@ white-space: nowrap;
 
 color: #fff;
 
-font-size: 11px;
+font-size: 10px;
 
 font-weight: 700;
 
@@ -196,11 +195,11 @@ margin-top: 2px;
 
 color: #20e070;
 
-font-size: 7px;
+font-size: 6px;
 
 font-weight: 900;
 
-letter-spacing: 0.6px;
+letter-spacing: 0.5px;
 
 }
 
@@ -209,7 +208,7 @@ margin-left: auto;
 
 color: #aaa;
 
-font-size: 12px;
+font-size: 11px;
 
 transition:
     transform 0.2s ease;
@@ -227,16 +226,16 @@ DROPDOWN
 .live-dropdown {
 position: absolute;
 
-top: 46px;
+top: 42px;
 left: 0;
 
-width: 165px;
+width: 155px;
 
-padding: 8px;
+padding: 7px;
 
 box-sizing: border-box;
 
-border-radius: 14px;
+border-radius: 13px;
 
 background:
     linear-gradient(
@@ -248,8 +247,8 @@ background:
 border: 1px solid rgba(255, 179, 71, 0.25);
 
 box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.55),
-    0 0 15px rgba(255, 165, 0, 0.08);
+    0 10px 28px rgba(0, 0, 0, 0.55),
+    0 0 14px rgba(255, 165, 0, 0.08);
 
 opacity: 0;
 
@@ -290,24 +289,24 @@ align-items: center;
 
 gap: 7px;
 
-padding: 7px 8px 9px;
+padding: 6px 7px 8px;
 
 color: #aaa;
 
-font-size: 11px;
+font-size: 10px;
 
 }
 
 .dropdown-live-dot {
-width: 7px;
-height: 7px;
+width: 6px;
+height: 6px;
 
 border-radius: 50%;
 
 background: #20e070;
 
 box-shadow:
-    0 0 6px rgba(32, 224, 112, 0.8);
+    0 0 5px rgba(32, 224, 112, 0.8);
 
 }
 
@@ -318,7 +317,7 @@ DISCONNECT BUTTON
 .disconnect-button {
 width: 100%;
 
-min-height: 36px;
+min-height: 34px;
 
 display: flex;
 
@@ -326,13 +325,13 @@ align-items: center;
 
 justify-content: flex-start;
 
-gap: 9px;
+gap: 8px;
 
-padding: 8px 10px;
+padding: 7px 9px;
 
 border: 0;
 
-border-radius: 9px;
+border-radius: 8px;
 
 background:
     rgba(220, 45, 45, 0.12);
@@ -341,7 +340,7 @@ color: #ff6969;
 
 font-family: inherit;
 
-font-size: 12px;
+font-size: 11px;
 
 font-weight: 700;
 
@@ -362,7 +361,7 @@ color: #ff8585;
 }
 
 .disconnect-icon {
-font-size: 16px;
+font-size: 15px;
 
 line-height: 1;
 
@@ -377,12 +376,11 @@ LAST MEMBER
 position: absolute;
 
 right: 12px;
-bottom: 12px;
+bottom: 10px;
 
 z-index: 900;
 
-width: auto;
-max-width: 190px;
+width: 95px;
 
 padding: 0;
 
@@ -392,9 +390,9 @@ display: flex;
 
 flex-direction: column;
 
-align-items: flex-end;
+align-items: center;
 
-text-align: right;
+text-align: center;
 
 background: transparent;
 
@@ -411,45 +409,38 @@ transition:
 }
 
 /* =========================================
-WELCOME LABEL
+WELCOME TEXT
+نورت اللايف
 ========================================= */
 
 .event-label {
+order: 1;
+
 display: flex;
 
 align-items: center;
+justify-content: center;
 
-justify-content: flex-end;
+gap: 3px;
 
-gap: 5px;
+margin: 0 0 5px;
 
-margin: 0 3px 5px 0;
+color: #ffd98a;
 
-color: #ffffff;
+font-size: 10px;
 
-font-size: 11px;
+font-weight: 900;
 
-font-weight: 800;
+white-space: nowrap;
 
 text-shadow:
-    0 2px 7px rgba(0, 0, 0, 0.85);
+    0 0 5px rgba(255, 185, 60, 0.65),
+    0 2px 8px rgba(0, 0, 0, 0.95);
 
 }
 
 .event-dot {
-width: 6px;
-height: 6px;
-
-border-radius: 50%;
-
-background: #20e070;
-
-box-shadow:
-    0 0 7px rgba(32, 224, 112, 0.9);
-
-animation:
-    eventPulse 1.2s infinite;
-
+display: none;
 }
 
 /* =========================================
@@ -457,13 +448,12 @@ PROFILE
 ========================================= */
 
 .profile-wrapper {
-position: absolute;
+position: relative;
 
-right: 0;
-bottom: 0;
+order: 2;
 
-width: 42px;
-height: 42px;
+width: 46px;
+height: 46px;
 
 margin: 0;
 
@@ -480,6 +470,10 @@ justify-content: center;
 display: none;
 }
 
+/* =========================================
+NEON PROFILE
+========================================= */
+
 .member-profile {
 position: relative;
 
@@ -490,14 +484,18 @@ border-radius: 50%;
 
 object-fit: cover;
 
-border: 0;
+border: 2px solid #ffd166;
 
-box-shadow:
-    0 3px 12px rgba(0, 0, 0, 0.55);
+box-sizing: border-box;
 
 background: #222;
 
 opacity: 0;
+
+box-shadow:
+    0 0 0 2px rgba(255, 190, 60, 0.22),
+    0 0 7px rgba(255, 190, 60, 0.95),
+    0 0 16px rgba(255, 145, 0, 0.65);
 
 transition:
     opacity 0.35s ease,
@@ -510,15 +508,21 @@ USER INFO
 ========================================= */
 
 .member-info {
+order: 3;
+
 min-height: 0;
 
-padding-right: 52px;
+width: 100%;
+
+padding: 0;
+
+margin-top: 4px;
 
 display: flex;
 
 flex-direction: column;
 
-align-items: flex-end;
+align-items: center;
 
 justify-content: center;
 
@@ -527,11 +531,11 @@ justify-content: center;
 .member-name {
 color: #ffffff;
 
-font-size: 13px;
+font-size: 11px;
 
 font-weight: 800;
 
-max-width: 125px;
+max-width: 90px;
 
 overflow: hidden;
 
@@ -540,22 +544,12 @@ text-overflow: ellipsis;
 white-space: nowrap;
 
 text-shadow:
-    0 2px 7px rgba(0, 0, 0, 0.9);
+    0 2px 7px rgba(0, 0, 0, 0.95);
 
 }
 
 .member-username {
-margin-top: 2px;
-
-color: rgba(255, 255, 255, 0.68);
-
-font-size: 9px;
-
-direction: ltr;
-
-text-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.9);
-
+display: none;
 }
 
 /* =========================================
@@ -584,8 +578,8 @@ ANIMATIONS
     opacity: 0;
 
     transform:
-        translateY(14px)
-        scale(0.94);
+        translateY(12px)
+        scale(0.92);
 }
 
 100% {
@@ -603,13 +597,11 @@ ANIMATIONS
 0%,
 100% {
     opacity: 1;
-
     transform: scale(1);
 }
 
 50% {
     opacity: 0.45;
-
     transform: scale(0.75);
 }
 
@@ -629,7 +621,7 @@ ANIMATIONS
     opacity: 0.65;
 
     box-shadow:
-        0 0 10px rgba(32, 224, 112, 1);
+        0 0 9px rgba(32, 224, 112, 1);
 }
 
 }
@@ -641,17 +633,17 @@ MOBILE
 @media (max-width: 480px) {
 
 .live-account {
-    top: 8px;
-    left: 8px;
+    top: 7px;
+    left: 7px;
 }
 
 
 .live-account-button {
-    height: 38px;
+    height: 34px;
 
-    min-width: 125px;
+    min-width: 112px;
 
-    gap: 6px;
+    gap: 5px;
 
     padding-right: 6px;
 }
@@ -659,82 +651,84 @@ MOBILE
 
 .live-avatar-wrapper,
 .live-profile-image {
-    width: 28px;
-    height: 28px;
+    width: 25px;
+    height: 25px;
 }
 
 
 .live-avatar-wrapper {
-    flex-basis: 28px;
+    flex-basis: 25px;
 }
 
 
 .live-status-dot {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
 }
 
 
 .live-username {
-    max-width: 72px;
+    max-width: 63px;
 
-    font-size: 10px;
+    font-size: 9px;
 }
 
 
 .live-status-text {
-    font-size: 6px;
+    font-size: 5.5px;
 }
 
 
 .live-dropdown {
-    top: 44px;
+    top: 40px;
 
-    width: 160px;
+    width: 150px;
 }
 
 
 .live-event-card {
-    right: 9px;
-    bottom: 9px;
+    right: 8px;
+    bottom: 8px;
 
-    max-width: 175px;
+    width: 88px;
 }
 
 
 .event-label {
-    font-size: 10px;
+    font-size: 9px;
 
     margin-bottom: 4px;
 }
 
 
 .profile-wrapper {
-    width: 38px;
-    height: 38px;
+    width: 42px;
+    height: 42px;
 }
 
 
 .member-profile {
     width: 38px;
     height: 38px;
+
+    border-width: 2px;
+
+    box-shadow:
+        0 0 0 2px rgba(255, 190, 60, 0.22),
+        0 0 6px rgba(255, 190, 60, 0.95),
+        0 0 13px rgba(255, 145, 0, 0.6);
 }
 
 
 .member-info {
-    padding-right: 47px;
+    margin-top: 3px;
 }
 
 
 .member-name {
-    max-width: 115px;
+    max-width: 82px;
 
-    font-size: 12px;
-}
-
-
-.member-username {
-    font-size: 8px;
+    font-size: 10px;
 }
 
 }
