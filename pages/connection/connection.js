@@ -12,12 +12,16 @@
         document.getElementById("connect-btn");
 
     const connectionStatus =
-        document.getElementById("connection-status");
+        document.getElementById(
+            "connection-status"
+        );
 
 
-    if (!usernameInput ||
+    if (
+        !usernameInput ||
         !connectButton ||
-        !connectionStatus) {
+        !connectionStatus
+    ) {
 
         console.error(
             "S-LIVE: Connection elements not found"
@@ -31,74 +35,37 @@
        زر الاتصال
     ========================================= */
 
-    const connectButton = document.querySelector("#connect-button");
-const usernameInput = document.querySelector("#username");
-const statusElement = document.querySelector("#connection-status");
+    connectButton.addEventListener(
+        "click",
+        startConnection
+    );
 
-connectButton.addEventListener("click", async () => {
 
-    const username = usernameInput.value.trim();
+    /* =========================================
+       Enter
+    ========================================= */
 
-    if (!username) {
-        statusElement.textContent = "أدخل اسم مستخدم TikTok";
-        return;
-    }
+    usernameInput.addEventListener(
+        "keydown",
+        function (event) {
 
-    connectButton.disabled = true;
-    statusElement.textContent = "جاري الاتصال...";
+            if (event.key === "Enter") {
+                startConnection();
+            }
 
-    try {
-
-        const response = await fetch("/api/connection/connect", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                username
-            })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok || !data.success) {
-            throw new Error(
-                data.message || "فشل الاتصال"
-            );
         }
-
-        console.log("TikTok connected:", data);
-
-        statusElement.textContent = "تم الاتصال بنجاح";
-
-        // الانتقال إلى الصفحة الرئيسية
-        if (window.loadPage) {
-            window.loadPage("home");
-        }
-
-    } catch (error) {
-
-        console.error(error);
-
-        statusElement.textContent =
-            error.message || "حدث خطأ أثناء الاتصال";
-
-        connectButton.disabled = false;
-    }
-});
+    );
 
 
     /* =========================================
        بدء الاتصال
     ========================================= */
 
-    function startConnection() {
+    async function startConnection() {
 
         let username =
             usernameInput.value.trim();
 
-
-        /* منع الإدخال الفارغ */
 
         if (!username) {
 
@@ -113,14 +80,12 @@ connectButton.addEventListener("click", async () => {
         }
 
 
-        /* إزالة @ إذا كتبها المستخدم */
-
+        // إزالة @
         username =
             username.replace(/^@+/, "");
 
 
-        /* تنظيف اسم المستخدم */
-
+        // إزالة المسافات
         username =
             username.replace(/\s+/g, "");
 
@@ -136,13 +101,9 @@ connectButton.addEventListener("click", async () => {
         }
 
 
-        /* إعادة كتابة الاسم بشكل موحد */
-
         usernameInput.value =
             "@" + username;
 
-
-        /* تعطيل الزر أثناء الاتصال */
 
         connectButton.disabled = true;
 
@@ -156,36 +117,98 @@ connectButton.addEventListener("click", async () => {
         );
 
 
-        /*
-         * =====================================
-         * الاتصال الحقيقي بـ TikTok
-         * سيتم إضافته لاحقًا.
-         * =====================================
-         */
+        try {
 
-        console.log(
-            "S-LIVE: Connecting to TikTok LIVE:",
-            username
-        );
+            const response =
+                await fetch(
+                    "/api/connection/connect",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            username
+                        })
+                    }
+                );
 
 
-        /*
-         * مؤقت للتجربة فقط
-         */
+            const data =
+                await response.json();
 
-        setTimeout(function () {
 
-            connectButton.disabled = false;
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+
+                throw new Error(
+                    data.message ||
+                    "فشل الاتصال باللايف"
+                );
+            }
+
+
+            console.log(
+                "S-LIVE: TikTok connected",
+                data
+            );
+
+
+            setStatus(
+                "تم الاتصال بنجاح",
+                "connected"
+            );
+
+
+            /*
+             * ننتظر قليلًا حتى تظهر
+             * حالة الاتصال للمستخدم
+             */
+
+            setTimeout(() => {
+
+                if (
+                    window.SLive &&
+                    typeof
+                    window.SLive.loadPage ===
+                    "function"
+                ) {
+
+                    window.SLive.loadPage(
+                        "home"
+                    );
+
+                }
+
+            }, 300);
+
+
+        } catch (error) {
+
+            console.error(
+                "S-LIVE connection error:",
+                error
+            );
+
+
+            setStatus(
+                error.message ||
+                "تعذر الاتصال باللايف",
+                "error"
+            );
+
+
+            connectButton.disabled =
+                false;
 
             connectButton.textContent =
                 "اتصال باللايف";
-
-            setStatus(
-                "جاهز للاتصال الحقيقي",
-                "connecting"
-            );
-
-        }, 1500);
+        }
 
     }
 
@@ -194,7 +217,10 @@ connectButton.addEventListener("click", async () => {
        تغيير حالة الاتصال
     ========================================= */
 
-    function setStatus(message, state) {
+    function setStatus(
+        message,
+        state
+    ) {
 
         const statusText =
             connectionStatus.querySelector(
@@ -208,6 +234,7 @@ connectButton.addEventListener("click", async () => {
 
 
         if (statusText) {
+
             statusText.textContent =
                 message;
         }
@@ -218,8 +245,12 @@ connectButton.addEventListener("click", async () => {
             statusDot.className =
                 "status-dot";
 
+
             if (state) {
-                statusDot.classList.add(state);
+
+                statusDot.classList.add(
+                    state
+                );
             }
 
         }
