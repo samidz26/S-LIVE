@@ -1,21 +1,33 @@
-/* =========================================
-   S-LIVE
-   CONNECTION PAGE
-========================================= */
-
 (function () {
 
+    console.log(
+        "S-LIVE: Connection page initialized"
+    );
+
+
+    /* =========================================
+       ELEMENTS
+    ========================================= */
+
     const usernameInput =
-        document.getElementById("username");
+        document.getElementById(
+            "username"
+        );
 
     const connectButton =
-        document.getElementById("connect-btn");
+        document.getElementById(
+            "connect-btn"
+        );
 
     const connectionStatus =
         document.getElementById(
             "connection-status"
         );
 
+
+    /*
+        التأكد من وجود العناصر
+    */
 
     if (
         !usernameInput ||
@@ -32,7 +44,7 @@
 
 
     /* =========================================
-       زر الاتصال
+       EVENTS
     ========================================= */
 
     connectButton.addEventListener(
@@ -41,24 +53,22 @@
     );
 
 
-    /* =========================================
-       Enter
-    ========================================= */
-
     usernameInput.addEventListener(
         "keydown",
         function (event) {
 
-            if (event.key === "Enter") {
+            if (
+                event.key === "Enter"
+            ) {
+
                 startConnection();
             }
-
         }
     );
 
 
     /* =========================================
-       بدء الاتصال
+       START CONNECTION
     ========================================= */
 
     async function startConnection() {
@@ -66,6 +76,10 @@
         let username =
             usernameInput.value.trim();
 
+
+        /*
+            التحقق من الإدخال
+        */
 
         if (!username) {
 
@@ -80,15 +94,31 @@
         }
 
 
-        // إزالة @
+        /*
+            إزالة @
+        */
+
         username =
-            username.replace(/^@+/, "");
+            username.replace(
+                /^@+/,
+                ""
+            );
 
 
-        // إزالة المسافات
+        /*
+            إزالة المسافات
+        */
+
         username =
-            username.replace(/\s+/g, "");
+            username.replace(
+                /\s+/g,
+                ""
+            );
 
+
+        /*
+            التحقق مرة أخرى
+        */
 
         if (!username) {
 
@@ -101,11 +131,20 @@
         }
 
 
+        /*
+            عرض الاسم بالشكل الصحيح
+        */
+
         usernameInput.value =
             "@" + username;
 
 
-        connectButton.disabled = true;
+        /* =====================================
+           UI - CONNECTING
+        ===================================== */
+
+        connectButton.disabled =
+            true;
 
         connectButton.textContent =
             "جاري الاتصال...";
@@ -117,7 +156,16 @@
         );
 
 
+        /* =====================================
+           SERVER REQUEST
+        ===================================== */
+
         try {
+
+            console.log(
+                `S-LIVE: Connecting to @${username}`
+            );
+
 
             const response =
                 await fetch(
@@ -130,16 +178,37 @@
                                 "application/json"
                         },
 
-                        body: JSON.stringify({
-                            username
-                        })
+                        body:
+                            JSON.stringify({
+                                username:
+                                    username
+                            })
                     }
                 );
 
 
-            const data =
-                await response.json();
+            /*
+                محاولة قراءة JSON
+            */
 
+            let data;
+
+            try {
+
+                data =
+                    await response.json();
+
+            } catch (jsonError) {
+
+                throw new Error(
+                    "السيرفر لم يُرجع استجابة صحيحة"
+                );
+            }
+
+
+            /*
+                فشل الاتصال
+            */
 
             if (
                 !response.ok ||
@@ -159,33 +228,88 @@
             );
 
 
+            /* =====================================
+               SAVE CONNECTION
+            ===================================== */
+
+            const connectedUsername =
+                data.username ||
+                username;
+
+
+            localStorage.setItem(
+                "s_live_username",
+                connectedUsername
+            );
+
+
+            localStorage.setItem(
+                "s_live_connected",
+                "true"
+            );
+
+
+            /*
+                حفظ Room ID إن توفر
+            */
+
+            if (data.roomId) {
+
+                localStorage.setItem(
+                    "s_live_room_id",
+                    String(data.roomId)
+                );
+
+            } else {
+
+                localStorage.removeItem(
+                    "s_live_room_id"
+                );
+            }
+
+
+            /* =====================================
+               SUCCESS
+            ===================================== */
+
             setStatus(
                 "تم الاتصال بنجاح",
                 "connected"
             );
 
 
+            connectButton.textContent =
+                "تم الاتصال";
+
+
             /*
-             * ننتظر قليلًا حتى تظهر
-             * حالة الاتصال للمستخدم
-             */
+                الانتقال إلى Home
+            */
 
-            setTimeout(() => {
+            setTimeout(
+                function () {
 
-                if (
-                    window.SLive &&
-                    typeof
-                    window.SLive.loadPage ===
-                    "function"
-                ) {
+                    if (
+                        window.SLive &&
+                        typeof
+                            window.SLive.loadPage ===
+                            "function"
+                    ) {
 
-                    window.SLive.loadPage(
-                        "home"
-                    );
+                        window.SLive.loadPage(
+                            "home"
+                        );
 
-                }
+                    } else {
 
-            }, 300);
+                        console.error(
+                            "S-LIVE: loadPage not available"
+                        );
+                    }
+
+                },
+                300
+            );
 
 
         } catch (error) {
@@ -195,6 +319,10 @@
                 error
             );
 
+
+            /* =====================================
+               ERROR
+            ===================================== */
 
             setStatus(
                 error.message ||
@@ -209,12 +337,11 @@
             connectButton.textContent =
                 "اتصال باللايف";
         }
-
     }
 
 
     /* =========================================
-       تغيير حالة الاتصال
+       SET STATUS
     ========================================= */
 
     function setStatus(
@@ -252,9 +379,7 @@
                     state
                 );
             }
-
         }
-
     }
 
 })();
