@@ -1,59 +1,145 @@
-router.get(
-    "/proxy-image",
-    async (req, res) => {
+<div class="home-page">
 
-        const imageUrl =
-            req.query.url;
+    <!-- حساب صاحب اللايف -->
+    <div class="live-account" id="live-account">
 
-        if (
-            !imageUrl ||
-            typeof imageUrl !== "string" ||
-            !imageUrl.startsWith("https://")
-        ) {
+        <button
+            class="live-account-button"
+            id="live-account-button"
+            type="button"
+            aria-expanded="false"
+        >
 
-            return res.status(400).end();
-        }
+            <div class="live-avatar-wrapper">
 
-        try {
+                <img
+                    id="live-profile-image"
+                    class="live-profile-image"
+                    src=""
+                    alt="TikTok"
+                    referrerpolicy="no-referrer"
+                >
 
-            const response =
-                await fetch(imageUrl);
+                <span
+                    class="live-status-dot"
+                    title="متصل"
+                ></span>
 
-            if (!response.ok) {
+            </div>
 
-                return res.status(502).end();
-            }
+            <div class="live-account-info">
 
-            const contentType =
-                response.headers.get(
-                    "content-type"
-                ) || "image/jpeg";
+                <span
+                    id="live-username"
+                    class="live-username"
+                >
+                    @username
+                </span>
 
-            res.setHeader(
-                "Content-Type",
-                contentType
-            );
+                <span class="live-status-text">
+                    LIVE
+                </span>
 
-            res.setHeader(
-                "Cache-Control",
-                "public, max-age=300"
-            );
+            </div>
 
-            const buffer =
-                Buffer.from(
-                    await response.arrayBuffer()
-                );
+            <span
+                class="live-arrow"
+                aria-hidden="true"
+            >
+                ▾
+            </span>
 
-            return res.end(buffer);
+        </button>
 
-        } catch (error) {
 
-            console.error(
-                "S-LIVE proxy-image error:",
-                error
-            );
+        <!-- قائمة الحساب -->
+        <div
+            class="live-dropdown"
+            id="live-dropdown"
+            aria-hidden="true"
+        >
 
-            return res.status(502).end();
-        }
-    }
-);
+            <div class="dropdown-account">
+
+                <span class="dropdown-live-dot"></span>
+
+                <span>
+                    متصل باللايف
+                </span>
+
+            </div>
+
+            <button
+                class="disconnect-button"
+                id="disconnect-button"
+                type="button"
+            >
+
+                <span class="disconnect-icon">
+                    ⏻
+                </span>
+
+                <span>
+                    قطع الاتصال
+                </span>
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- إشعار دخول الأشخاص -->
+    <div
+        class="live-event-card"
+        id="live-event-card"
+    >
+
+        <div class="event-label">
+
+            <span class="event-dot"></span>
+
+            <span>
+                دخل إلى اللايف
+            </span>
+
+        </div>
+
+
+        <div class="profile-wrapper">
+
+            <div class="profile-glow"></div>
+
+            <img
+                id="member-profile"
+                class="member-profile"
+                src=""
+                alt="Profile"
+                referrerpolicy="no-referrer"
+            >
+
+        </div>
+
+
+        <div class="member-info">
+
+            <div
+                id="member-name"
+                class="member-name"
+            >
+                بانتظار دخول شخص...
+            </div>
+
+            <div
+                id="member-username"
+                class="member-username"
+            >
+                سيتم عرض أول شخص يدخل اللايف
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
