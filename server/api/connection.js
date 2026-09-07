@@ -1,160 +1,151 @@
 const express = require("express");
 
-const {
-connectToTikTok,
-disconnectFromTikTok,
-getConnectionStatus,
-liveEvents
-} = require("../connection/tiktokConnection");
-
 const router = express.Router();
 
-/*
+const {
+    connectToTikTok,
+    disconnectFromTikTok,
+    getConnectionStatus,
+    liveEvents
+} = require("../connection/tiktokConnection");
 
-CONNECT
 
-*/
+/* =========================================
+   CONNECT
+========================================= */
 
-router.post(
-"/connect",
-async (req, res) => {
+router.post("/connect", async (req, res) => {
 
     try {
 
         const username =
-            String(
-                req.body?.username || ""
-            ).trim();
+            req.body?.username;
 
-        if (!username) {
+        if (
+            !username ||
+            typeof username !== "string"
+        ) {
 
             return res.status(400).json({
                 success: false,
-                message:
-                    "يرجى إدخال اسم مستخدم TikTok"
+                message: "اسم المستخدم مطلوب"
             });
-
         }
+
+
+        const cleanUsername =
+            username
+                .trim()
+                .replace(/^@/, "");
+
+
+        if (!cleanUsername) {
+
+            return res.status(400).json({
+                success: false,
+                message: "اسم المستخدم غير صالح"
+            });
+        }
+
 
         const result =
             await connectToTikTok(
-                username
+                cleanUsername
             );
 
+
         return res.json({
-
             success: true,
-
-            connected: true,
-
-            username:
-                result.username,
-
-            roomId:
-                result.roomId,
-
-            profilePictureUrl:
-                result.profilePictureUrl || ""
-
+            ...result
         });
 
     } catch (error) {
 
         console.error(
-            "S-LIVE TikTok connection error:",
+            "S-LIVE connect API error:",
             error
         );
 
         return res.status(500).json({
-
             success: false,
-
-            connected: false,
-
             message:
                 error?.message ||
-                "تعذر الاتصال باللايف"
-
+                "فشل الاتصال باللايف"
         });
-
     }
+});
 
-}
 
-);
+/* =========================================
+   DISCONNECT
+========================================= */
 
-/*
-
-DISCONNECT
-
-*/
-
-router.post(
-"/disconnect",
-async (req, res) => {
+router.post("/disconnect", async (req, res) => {
 
     try {
 
         await disconnectFromTikTok();
 
+
         return res.json({
-
             success: true,
-
-            connected: false
-
+            message: "تم قطع الاتصال"
         });
 
     } catch (error) {
 
         console.error(
-            "S-LIVE disconnect error:",
+            "S-LIVE disconnect API error:",
             error
         );
 
         return res.status(500).json({
-
             success: false,
-
             message:
                 error?.message ||
                 "تعذر قطع الاتصال"
+        });
+    }
+});
 
+
+/* =========================================
+   STATUS
+========================================= */
+
+router.get("/status", (req, res) => {
+
+    try {
+
+        const status =
+            getConnectionStatus();
+
+
+        return res.json({
+            success: true,
+            ...status
         });
 
+    } catch (error) {
+
+        console.error(
+            "S-LIVE status API error:",
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            connected: false
+        });
     }
+});
 
-}
 
-);
+/* =========================================
+   LIVE EVENTS - SSE
+========================================= */
 
-/*
-
-STATUS
-
-*/
-
-router.get(
-"/status",
-(req, res) => {
-
-    return res.json(
-        getConnectionStatus()
-    );
-
-}
-
-);
-
-/*
-
-LIVE EVENTS - SSE
-
-*/
-
-router.get(
-"/events",
-(req, res) => {
+router.get("/events", (req, res) => {
 
     res.setHeader(
         "Content-Type",
@@ -171,52 +162,43 @@ router.get(
         "keep-alive"
     );
 
+    /*
+     * يساعد Render / proxies
+     * على عدم تخزين الاستجابة.
+     */
+
     res.setHeader(
         "X-Accel-Buffering",
         "no"
     );
 
-    res.flushHeaders();
-
 
     /*
-    إرسال حالة الاتصال
-    عند فتح SSE
-    */
-
-    const status =
-        getConnectionStatus();
+     * فتح قناة SSE
+     */
 
     res.write(
-        `event: status\n`
+        ": connected\n\n"
     );
 
-    res.write(
-        `data: ${JSON.stringify(status)}\n\n`
-    );
-
-
-    /*
-    ---------------------------------
-    MEMBER EVENT
-    ---------------------------------
-    */
 
     const sendMember =
         (member) => {
 
-            if (res.writableEnded) {
-                return;
+            try {
+
+                res.write(
+                    `event: member\n` +
+                    `data: ${JSON.stringify(member)}\n\n`
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "S-LIVE SSE member error:",
+                    error
+                );
             }
-
-            res.write(
-                `event: member\n`
-            );
-
-            res.write(
-                `data: ${JSON.stringify(member)}\n\n`
-            );
-
         };
 
 
@@ -227,102 +209,38 @@ router.get(
 
 
     /*
-    ---------------------------------
-    CONNECTION EVENT
-    ---------------------------------
-    */
+     * إبقاء الاتصال حياً
+     */
 
-    const sendConnection =
-        (data) => {
+    const keepAlive =
+        setInterval(() => {
 
-            if (res.writableEnded) {
-                return;
+            try {
+
+                res.write(
+                    ": ping\n\n"
+                );
+
+            } catch (error) {
+
+                clearInterval(
+                    keepAlive
+                );
             }
 
-            res.write(
-                `event: connection\n`
-            );
-
-            res.write(
-                `data: ${JSON.stringify(data)}\n\n`
-            );
-
-        };
-
-
-    liveEvents.on(
-        "connection",
-        sendConnection
-    );
+        }, 20000);
 
 
     /*
-    ---------------------------------
-    DISCONNECT EVENT
-    ---------------------------------
-    */
-
-    const sendDisconnect =
-        (data) => {
-
-            if (res.writableEnded) {
-                return;
-            }
-
-            res.write(
-                `event: disconnect\n`
-            );
-
-            res.write(
-                `data: ${JSON.stringify(data)}\n\n`
-            );
-
-        };
-
-
-    liveEvents.on(
-        "disconnect",
-        sendDisconnect
-    );
-
-
-    /*
-    ---------------------------------
-    HEARTBEAT
-    ---------------------------------
-    */
-
-    const heartbeat =
-        setInterval(
-            () => {
-
-                if (
-                    !res.writableEnded
-                ) {
-
-                    res.write(
-                        `: heartbeat\n\n`
-                    );
-
-                }
-
-            },
-            25000
-        );
-
-
-    /*
-    ---------------------------------
-    CLIENT DISCONNECTED
-    ---------------------------------
-    */
+     * عند إغلاق المتصفح
+     */
 
     req.on(
         "close",
         () => {
 
             clearInterval(
-                heartbeat
+                keepAlive
             );
 
             liveEvents.off(
@@ -330,103 +248,87 @@ router.get(
                 sendMember
             );
 
-            liveEvents.off(
-                "connection",
-                sendConnection
-            );
-
-            liveEvents.off(
-                "disconnect",
-                sendDisconnect
-            );
-
-            console.log(
-                "S-LIVE: SSE client disconnected"
-            );
-
+            res.end();
         }
     );
+});
 
-}
 
-);
-
-/*
-
-PROXY IMAGE
-
-نستخدمه عند الحاجة لعرض صورة
-TikTok من خلال السيرفر.
-
-*/
+/* =========================================
+   PROXY IMAGE
+========================================= */
 
 router.get(
-"/proxy-image",
-async (req, res) => {
+    "/proxy-image",
+    async (req, res) => {
 
-    const imageUrl =
-        req.query.url;
+        const imageUrl =
+            req.query.url;
 
-    if (
-        !imageUrl ||
-        typeof imageUrl !== "string" ||
-        !imageUrl.startsWith("https://")
-    ) {
 
-        return res.status(400).end();
+        if (
+            !imageUrl ||
+            typeof imageUrl !== "string" ||
+            !imageUrl.startsWith("https://")
+        ) {
 
-    }
-
-    try {
-
-        const response =
-            await fetch(
-                imageUrl
-            );
-
-        if (!response.ok) {
-
-            return res.status(502).end();
-
+            return res.status(400).end();
         }
 
-        const contentType =
-            response.headers.get(
-                "content-type"
-            ) || "image/jpeg";
 
-        res.setHeader(
-            "Content-Type",
-            contentType
-        );
+        try {
 
-        res.setHeader(
-            "Cache-Control",
-            "public, max-age=300"
-        );
+            const response =
+                await fetch(imageUrl);
 
-        const buffer =
-            Buffer.from(
-                await response.arrayBuffer()
+
+            if (!response.ok) {
+
+                return res.status(502).end();
+            }
+
+
+            const contentType =
+                response.headers.get(
+                    "content-type"
+                ) || "image/jpeg";
+
+
+            res.setHeader(
+                "Content-Type",
+                contentType
             );
 
-        return res.end(
-            buffer
-        );
 
-    } catch (error) {
+            res.setHeader(
+                "Cache-Control",
+                "public, max-age=300"
+            );
 
-        console.error(
-            "S-LIVE proxy-image error:",
-            error
-        );
 
-        return res.status(502).end();
+            const buffer =
+                Buffer.from(
+                    await response.arrayBuffer()
+                );
 
+
+            return res.end(buffer);
+
+        } catch (error) {
+
+            console.error(
+                "S-LIVE proxy-image error:",
+                error
+            );
+
+            return res.status(502).end();
+        }
     }
-
-}
-
 );
+
+
+/* =========================================
+   EXPORT
+========================================= */
 
 module.exports = router;
