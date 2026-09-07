@@ -1,13 +1,10 @@
+const EventEmitter = require("events");
+
+const liveEvents = new EventEmitter();
+
 let activeConnection = null;
-
 let activeUsername = null;
-
 let activeRoomId = null;
-
-
-/* =========================================
-   الاتصال بـ TikTok
-========================================= */
 
 async function connectToTikTok(username) {
 
@@ -16,96 +13,94 @@ async function connectToTikTok(username) {
             .trim()
             .replace(/^@+/, "");
 
-
     if (!cleanUsername) {
-
-        throw new Error(
-            "اسم المستخدم غير صالح"
-        );
+        throw new Error("اسم المستخدم غير صالح");
     }
-
-
-    /*
-     * استيراد المكتبة ديناميكيًا.
-     *
-     * هذا يسمح لنا بالاحتفاظ بـ
-     * server.js بصيغة CommonJS.
-     */
 
     const module =
-        await import(
-            "tiktok-live-connector"
-        );
+        await import("tiktok-live-connector");
 
-
-    const {
-        TikTokLiveConnection
-    } = module;
-
+    const { TikTokLiveConnection, WebcastEvent } = module;
 
     if (!TikTokLiveConnection) {
-
-        throw new Error(
-            "TikTokLiveConnection غير متوفر"
-        );
+        throw new Error("TikTokLiveConnection غير متوفر");
     }
 
-
-    /*
-     * قطع الاتصال السابق
-     */
-
     if (activeConnection) {
-
         try {
-
-            await activeConnection
-                .disconnect();
-
+            await activeConnection.disconnect();
         } catch (error) {
-
-            console.log(
-                "Previous TikTok connection closed."
-            );
-
+            console.log("Previous TikTok connection closed.");
         }
 
         activeConnection = null;
     }
 
-
-    console.log(
-        `S-LIVE: Connecting to @${cleanUsername}`
-    );
-
+    console.log(`S-LIVE: Connecting to @${cleanUsername}`);
 
     const connection =
-    new TikTokLiveConnection(
-        cleanUsername,
-        {
-            processInitialData: false,
-            fetchRoomInfoOnConnect: true
-        }
-    );
-
+        new TikTokLiveConnection(
+            cleanUsername,
+            {
+                processInitialData: false,
+                fetchRoomInfoOnConnect: true
+            }
+        );
 
     /*
-     * محاولة الاتصال
-     */
+    =========================================
+    حدث دخول شخص جديد
+    =========================================
+    */
+
+    connection.on(
+        WebcastEvent.MEMBER,
+        (data) => {
+
+            const user = data?.user;
+
+            if (!user) {
+                return;
+            }
+
+            const member = {
+                uniqueId:
+                    user.uniqueId || "",
+
+                nickname:
+                    user.nickname ||
+                    user.uniqueId ||
+                    "TikTok User",
+
+                profilePictureUrl:
+                    user.profilePictureUrl || "",
+
+                joinedAt:
+                    Date.now()
+            };
+
+            console.log(
+                `S-LIVE: New member -> ${member.nickname} (@${member.uniqueId})`
+            );
+
+            /*
+            إرسال آخر شخص دخل
+            إلى جميع صفحات Home المفتوحة
+            */
+
+            liveEvents.emit(
+                "member",
+                member
+            );
+        }
+    );
 
     const state =
         await connection.connect();
 
-
-    activeConnection =
-        connection;
-
-    activeUsername =
-        cleanUsername;
-
-    activeRoomId =
-        state.roomId;
-
+    activeConnection = connection;
+    activeUsername = cleanUsername;
+    activeRoomId = state.roomId;
 
     console.log(
         `S-LIVE: Connected to @${cleanUsername}`
@@ -115,23 +110,12 @@ async function connectToTikTok(username) {
         `S-LIVE: Room ID: ${state.roomId}`
     );
 
-
     return {
-
-        username:
-            activeUsername,
-
-        roomId:
-            activeRoomId
-
+        username: activeUsername,
+        roomId: activeRoomId
     };
-
 }
 
-
-/* =========================================
-   قطع الاتصال
-========================================= */
 
 async function disconnectFromTikTok() {
 
@@ -139,66 +123,41 @@ async function disconnectFromTikTok() {
         return;
     }
 
-
     try {
-
-        await activeConnection
-            .disconnect();
-
+        await activeConnection.disconnect();
     } catch (error) {
-
         console.error(
             "S-LIVE disconnect error:",
             error
         );
-
     }
 
-
     activeConnection = null;
-
     activeUsername = null;
-
     activeRoomId = null;
-
 
     console.log(
         "S-LIVE: TikTok disconnected"
     );
-
 }
 
-
-/* =========================================
-   حالة الاتصال
-========================================= */
 
 function getConnectionStatus() {
 
     return {
-
         success: true,
-
-        connected:
-            Boolean(activeConnection),
-
-        username:
-            activeUsername,
-
-        roomId:
-            activeRoomId
-
+        connected: Boolean(activeConnection),
+        username: activeUsername,
+        roomId: activeRoomId
     };
-
 }
 
 
 module.exports = {
 
     connectToTikTok,
-
     disconnectFromTikTok,
+    getConnectionStatus,
+    liveEvents
 
-    getConnectionStatus
-
-};
+}; 
