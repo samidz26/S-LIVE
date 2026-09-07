@@ -130,8 +130,58 @@
 
                         };
 
-                    profile.src =
-                        member.profilePictureUrl;
+                    const images = [
+    member.profilePictureUrl,
+    ...(member.profilePictures || [])
+].filter(Boolean);
+
+let imageIndex = 0;
+
+function tryNextImage() {
+
+    if (imageIndex >= images.length) {
+
+        console.error(
+            "S-LIVE: All profile images failed"
+        );
+
+        profile.style.opacity = "0";
+
+        return;
+    }
+
+    const image =
+        images[imageIndex];
+
+    imageIndex++;
+
+    console.log(
+        "S-LIVE: Trying profile image:",
+        image
+    );
+
+    profile.src = image;
+}
+
+profile.onload = function () {
+
+    console.log(
+        "S-LIVE: Profile image loaded"
+    );
+
+    profile.style.opacity = "1";
+};
+
+profile.onerror = function () {
+
+    console.log(
+        "S-LIVE: Profile image failed"
+    );
+
+    tryNextImage();
+};
+
+tryNextImage();
 
                 }
 
