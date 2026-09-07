@@ -3,14 +3,12 @@
 ========================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
-
     loadPage("connection");
-
 });
 
 
 /* =========================================
-   تحميل الصفحة
+   تحميل صفحة
 ========================================= */
 
 async function loadPage(pageName) {
@@ -24,6 +22,7 @@ async function loadPage(pageName) {
 
     try {
 
+        // تحميل HTML
         const response = await fetch(
             `pages/${pageName}/${pageName}.html`
         );
@@ -36,14 +35,14 @@ async function loadPage(pageName) {
 
         const html = await response.text();
 
+        // وضع الصفحة داخل Frame
         appScreen.innerHTML = html;
 
-        /*
-         * بعد تحميل HTML
-         * نقوم بتحميل JavaScript الخاص بالصفحة
-         */
+        // تحميل CSS الخاص بالصفحة
+        loadPageStyles(pageName);
 
-        loadPageScript(pageName);
+        // تحميل JS الخاص بالصفحة
+        await loadPageScript(pageName);
 
         console.log(
             `S-LIVE: ${pageName} loaded successfully`
@@ -51,56 +50,106 @@ async function loadPage(pageName) {
 
     } catch (error) {
 
-        console.error("S-LIVE:", error);
+        console.error(
+            "S-LIVE page error:",
+            error
+        );
 
         appScreen.innerHTML = `
             <div class="page-load-error">
                 حدث خطأ أثناء تحميل الصفحة
             </div>
         `;
-
     }
-
 }
 
 
 /* =========================================
-   تحميل JavaScript الخاص بالصفحة
+   تحميل CSS الصفحة
+========================================= */
+
+function loadPageStyles(pageName) {
+
+    const oldStyle =
+        document.getElementById("active-page-style");
+
+    if (oldStyle) {
+        oldStyle.remove();
+    }
+
+    const style =
+        document.createElement("link");
+
+    style.id = "active-page-style";
+
+    style.rel = "stylesheet";
+
+    style.href =
+        `pages/${pageName}/${pageName}.css`;
+
+    document.head.appendChild(style);
+}
+
+
+/* =========================================
+   تحميل JavaScript الصفحة
 ========================================= */
 
 function loadPageScript(pageName) {
 
-    const oldScript =
-        document.getElementById("active-page-script");
+    return new Promise((resolve, reject) => {
 
-    if (oldScript) {
-        oldScript.remove();
-    }
+        const oldScript =
+            document.getElementById(
+                "active-page-script"
+            );
 
-    const script =
-        document.createElement("script");
+        if (oldScript) {
+            oldScript.remove();
+        }
 
-    script.id = "active-page-script";
+        const script =
+            document.createElement("script");
 
-    script.src =
-        `pages/${pageName}/${pageName}.js`;
+        script.id =
+            "active-page-script";
 
-    script.onload = () => {
+        script.src =
+            `pages/${pageName}/${pageName}.js`;
 
-        console.log(
-            `S-LIVE: ${pageName}.js loaded`
-        );
+        script.onload = () => {
 
-    };
+            console.log(
+                `S-LIVE: ${pageName}.js loaded`
+            );
 
-    script.onerror = () => {
+            resolve();
 
-        console.error(
-            `S-LIVE: Failed to load ${pageName}.js`
-        );
+        };
 
-    };
+        script.onerror = () => {
 
-    document.body.appendChild(script);
+            console.error(
+                `S-LIVE: Failed to load ${pageName}.js`
+            );
 
+            reject(
+                new Error(
+                    `Failed to load ${pageName}.js`
+                )
+            );
+        };
+
+        document.body.appendChild(script);
+    });
 }
+
+
+/* =========================================
+   إتاحة التنقل لباقي الصفحات
+========================================= */
+
+window.SLive = {
+
+    loadPage
+};
