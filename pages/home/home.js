@@ -1,249 +1,59 @@
-(function () {
+router.get(
+    "/proxy-image",
+    async (req, res) => {
 
-    console.log(
-        "S-LIVE: Home initialized"
-    );
+        const imageUrl =
+            req.query.url;
 
+        if (
+            !imageUrl ||
+            typeof imageUrl !== "string" ||
+            !imageUrl.startsWith("https://")
+        ) {
 
-    const card =
-        document.getElementById(
-            "live-event-card"
-        );
+            return res.status(400).end();
+        }
 
-    const profile =
-        document.getElementById(
-            "member-profile"
-        );
+        try {
 
-    const name =
-        document.getElementById(
-            "member-name"
-        );
+            const response =
+                await fetch(imageUrl);
 
-    const username =
-        document.getElementById(
-            "member-username"
-        );
+            if (!response.ok) {
 
-
-    if (
-        !card ||
-        !profile ||
-        !name ||
-        !username
-    ) {
-
-        console.error(
-            "S-LIVE: Home elements not found"
-        );
-
-        return;
-    }
-
-
-    /*
-    =========================================
-    الاتصال بأحداث TikTok
-    =========================================
-    */
-
-    const events =
-        new EventSource(
-            "/api/connection/events"
-        );
-
-
-    /*
-    =========================================
-    شخص جديد دخل اللايف
-    =========================================
-    */
-
-    events.addEventListener(
-        "member",
-        function (event) {
-
-            try {
-
-                const member =
-                    JSON.parse(
-                        event.data
-                    );
-
-                console.log(
-                    "S-LIVE: New member",
-                    member
-                );
-
-
-                /*
-                الاسم
-                */
-
-                name.textContent =
-                    member.nickname ||
-                    member.uniqueId ||
-                    "TikTok User";
-
-
-                /*
-                اسم المستخدم
-                */
-
-                if (
-                    member.uniqueId
-                ) {
-
-                    username.textContent =
-                        "@" +
-                        member.uniqueId;
-
-                } else {
-
-                    username.textContent =
-                        "";
-
-                }
-
-
-                /*
-                الصورة
-                */
-
-                if (
-                    member.profilePictureUrl
-                ) {
-
-                    profile.onload =
-                        function () {
-
-                            profile.style.opacity =
-                                "1";
-
-                        };
-
-                    profile.onerror =
-                        function () {
-
-                            profile.style.opacity =
-                                "0";
-
-                        };
-
-                    const images = [
-    member.profilePictureUrl,
-    ...(member.profilePictures || [])
-].filter(Boolean);
-
-let imageIndex = 0;
-
-function tryNextImage() {
-
-    if (imageIndex >= images.length) {
-
-        console.error(
-            "S-LIVE: All profile images failed"
-        );
-
-        profile.style.opacity = "0";
-
-        return;
-    }
-
-    const image =
-        images[imageIndex];
-
-    imageIndex++;
-
-    console.log(
-        "S-LIVE: Trying profile image:",
-        image
-    );
-
-    profile.src = image;
-}
-
-profile.onload = function () {
-
-    console.log(
-        "S-LIVE: Profile image loaded"
-    );
-
-    profile.style.opacity = "1";
-};
-
-profile.onerror = function () {
-
-    console.log(
-        "S-LIVE: Profile image failed"
-    );
-
-    tryNextImage();
-};
-
-tryNextImage();
-
-                }
-
-
-                /*
-                إعادة تشغيل Animation
-                */
-
-                card.classList.remove(
-                    "new-member"
-                );
-
-                void card.offsetWidth;
-
-                card.classList.add(
-                    "new-member"
-                );
-
-            } catch (error) {
-
-                console.error(
-                    "S-LIVE: Invalid member event",
-                    error
-                );
-
+                return res.status(502).end();
             }
 
-        }
-    );
+            const contentType =
+                response.headers.get(
+                    "content-type"
+                ) || "image/jpeg";
 
-
-    /*
-    =========================================
-    اتصال SSE
-    =========================================
-    */
-
-    events.onopen =
-        function () {
-
-            console.log(
-                "S-LIVE: Live events connected"
+            res.setHeader(
+                "Content-Type",
+                contentType
             );
 
-        };
+            res.setHeader(
+                "Cache-Control",
+                "public, max-age=300"
+            );
 
+            const buffer =
+                Buffer.from(
+                    await response.arrayBuffer()
+                );
 
-    /*
-    =========================================
-    خطأ في الاتصال
-    =========================================
-    */
+            return res.end(buffer);
 
-    events.onerror =
-        function (error) {
+        } catch (error) {
 
             console.error(
-                "S-LIVE: Live events error",
+                "S-LIVE proxy-image error:",
                 error
             );
 
-        };
-
-
-})();
+            return res.status(502).end();
+        }
+    }
+);
