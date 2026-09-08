@@ -946,13 +946,40 @@ async function connectToTikTok(username) {
        BROADCASTER PROFILE
     ========================================= */
 
-    activeProfilePicture =
-    getBroadcasterProfilePicture(connection);
+    /* =========================================
+   BROADCASTER PROFILE
+========================================= */
 
-console.log(
-    "S-LIVE FINAL PROFILE:",
-    activeProfilePicture
-);
+try {
+
+    // طلب معلومات الغرفة بشكل صريح
+    const roomInfo =
+        await connection.fetchRoomInfo();
+
+    // وضعها في connection حتى تستخدمها الدالة
+    connection.roomInfo =
+        roomInfo;
+
+    activeProfilePicture =
+        getBroadcasterProfilePicture(
+            connection
+        );
+
+    console.log(
+        "S-LIVE FINAL PROFILE:",
+        activeProfilePicture
+    );
+
+} catch (error) {
+
+    console.error(
+        "S-LIVE profile fetch error:",
+        error?.message || error
+    );
+
+    activeProfilePicture =
+        null;
+}
 
 
     console.log(
