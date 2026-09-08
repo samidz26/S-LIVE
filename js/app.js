@@ -29,6 +29,216 @@
 
 
     /* =========================================
+       GET / CREATE FIXED ACCOUNT BAR
+    ========================================= */
+
+    function getFixedAccount() {
+
+        let account =
+            document.getElementById(
+                "s-live-fixed-account"
+            );
+
+
+        if (account) {
+            return account;
+        }
+
+
+        account =
+            document.createElement(
+                "div"
+            );
+
+
+        account.id =
+            "s-live-fixed-account";
+
+
+        account.innerHTML = `
+
+            <div class="live-account">
+
+                <button
+                    class="live-account-button"
+                    id="live-account-button"
+                    type="button"
+                    aria-expanded="false"
+                >
+
+                    <div class="live-avatar-wrapper">
+
+                        <img
+                            id="live-profile-image"
+                            class="live-profile-image"
+                            src=""
+                            alt="TikTok"
+                            referrerpolicy="no-referrer"
+                        >
+
+                        <span
+                            class="live-status-dot"
+                            title="متصل"
+                        ></span>
+
+                    </div>
+
+
+                    <div class="live-account-info">
+
+                        <span
+                            id="live-username"
+                            class="live-username"
+                        >
+                            @username
+                        </span>
+
+                        <span class="live-status-text">
+                            LIVE
+                        </span>
+
+                    </div>
+
+
+                    <span
+                        class="live-arrow"
+                        aria-hidden="true"
+                    >
+                        ▾
+                    </span>
+
+                </button>
+
+
+                <!-- القائمة المنسدلة -->
+
+                <div
+                    class="live-dropdown"
+                    id="live-dropdown"
+                    aria-hidden="true"
+                >
+
+                    <button
+                        class="dropdown-icon-button"
+                        id="home-button"
+                        type="button"
+                        aria-label="Home"
+                        title="Home"
+                    >
+                        🏠
+                    </button>
+
+
+                    <button
+                        class="dropdown-icon-button"
+                        id="games-button"
+                        type="button"
+                        aria-label="Games"
+                        title="Games"
+                    >
+                        🎮
+                    </button>
+
+
+                    <button
+                        class="dropdown-icon-button"
+                        id="settings-button"
+                        type="button"
+                        aria-label="Settings"
+                        title="Settings"
+                    >
+                        ⚙️
+                    </button>
+
+
+                    <button
+                        class="dropdown-icon-button disconnect-button"
+                        id="disconnect-button"
+                        type="button"
+                        aria-label="Disconnect"
+                        title="Disconnect"
+                    >
+                        ❌
+                    </button>
+
+                </div>
+
+            </div>
+        `;
+
+
+        /*
+         * نضع الحساب داخل app-screen
+         * لكنه خارج منطقة الصفحات المتغيرة.
+         */
+
+        const appScreen =
+            getAppScreen();
+
+
+        if (appScreen) {
+
+            appScreen.appendChild(
+                account
+            );
+        }
+
+
+        return account;
+    }
+
+
+    /* =========================================
+       GET PAGE CONTAINER
+    ========================================= */
+
+    function getPageContainer() {
+
+        const appScreen =
+            getAppScreen();
+
+
+        if (!appScreen) {
+            return null;
+        }
+
+
+        let container =
+            document.getElementById(
+                "s-live-page-container"
+            );
+
+
+        if (container) {
+            return container;
+        }
+
+
+        container =
+            document.createElement(
+                "div"
+            );
+
+
+        container.id =
+            "s-live-page-container";
+
+
+        /*
+         * الصفحة ستكون هي الجزء المتغير فقط.
+         */
+
+        appScreen.insertBefore(
+            container,
+            appScreen.firstChild
+        );
+
+
+        return container;
+    }
+
+
+    /* =========================================
        LOAD PAGE
     ========================================= */
 
@@ -49,6 +259,29 @@
 
 
         try {
+
+            /*
+             * تأكد من وجود الحساب الثابت
+             */
+
+            getFixedAccount();
+
+
+            /*
+             * الحصول على حاوية الصفحات
+             */
+
+            const pageContainer =
+                getPageContainer();
+
+
+            if (!pageContainer) {
+
+                throw new Error(
+                    "تعذر إنشاء حاوية الصفحة"
+                );
+            }
+
 
             /*
              * تنظيف الصفحة السابقة
@@ -82,7 +315,14 @@
                 await response.text();
 
 
-            appScreen.innerHTML =
+            /*
+             * مهم:
+             * لا نستخدم appScreen.innerHTML
+             *
+             * بل نغير محتوى الصفحة فقط.
+             */
+
+            pageContainer.innerHTML =
                 html;
 
 
@@ -119,22 +359,29 @@
             );
 
 
-            appScreen.innerHTML = `
-                <div style="
-                    width:100%;
-                    height:100%;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    text-align:center;
-                    color:#fff;
-                    font-family:inherit;
-                    padding:20px;
-                    box-sizing:border-box;
-                ">
-                    تعذر تحميل الصفحة
-                </div>
-            `;
+            const pageContainer =
+                getPageContainer();
+
+
+            if (pageContainer) {
+
+                pageContainer.innerHTML = `
+                    <div style="
+                        width:100%;
+                        height:100%;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        text-align:center;
+                        color:#fff;
+                        font-family:inherit;
+                        padding:20px;
+                        box-sizing:border-box;
+                    ">
+                        تعذر تحميل الصفحة
+                    </div>
+                `;
+            }
 
 
             return false;
@@ -151,7 +398,7 @@
     ) {
 
         return new Promise(
-            (resolve, reject) => {
+            (resolve) => {
 
                 const link =
                     document.createElement(
@@ -184,10 +431,6 @@
                 link.onerror =
                     function () {
 
-                        /*
-                         * بعض الصفحات قد لا تحتاج CSS
-                         */
-
                         console.warn(
                             `S-LIVE: تعذر تحميل CSS لـ ${pageName}`
                         );
@@ -213,7 +456,7 @@
     ) {
 
         return new Promise(
-            (resolve, reject) => {
+            (resolve) => {
 
                 const script =
                     document.createElement(
@@ -266,7 +509,6 @@
 
         /*
          * إشعار للصفحة الحالية
-         * إذا كانت تحتاج تنظيف مواردها.
          */
 
         window.dispatchEvent(
@@ -282,6 +524,10 @@
         );
 
 
+        /*
+         * حذف JS الخاص بالصفحة
+         */
+
         if (activePageScript) {
 
             activePageScript.remove();
@@ -290,6 +536,10 @@
                 null;
         }
 
+
+        /*
+         * حذف CSS الخاص بالصفحة
+         */
 
         if (activePageStyle) {
 
@@ -306,14 +556,14 @@
                 );
 
             if (oldStyle) {
+
                 oldStyle.remove();
             }
         }
 
 
         /*
-         * home.js يستخدم EventSource.
-         * نطلب منه إغلاقه قبل الانتقال.
+         * إغلاق SSE
          */
 
         window.dispatchEvent(
@@ -470,21 +720,12 @@
 
         try {
 
-            /*
-             * إغلاق الصفحة الحالية أولاً
-             * حتى يتم إغلاق SSE.
-             */
-
             window.dispatchEvent(
                 new CustomEvent(
                     "s-live-cleanup"
                 )
             );
 
-
-            /*
-             * قطع اتصال TikTok
-             */
 
             const response =
                 await fetch(
@@ -521,11 +762,6 @@
 
 
         } finally {
-
-            /*
-             * في كل الحالات نمسح
-             * جلسة المتصفح.
-             */
 
             clearSession();
         }
@@ -598,6 +834,7 @@
 
             clearSession();
 
+
             await loadPage(
                 "connection"
             );
@@ -619,7 +856,7 @@
 
 
         /*
-         * لا توجد جلسة محفوظة
+         * لا توجد جلسة
          */
 
         if (!savedUsername) {
@@ -639,17 +876,13 @@
 
 
             /*
-             * السيرفر ما زال متصلاً
+             * السيرفر متصل
              */
 
             if (
                 status.success &&
                 status.connected
             ) {
-
-                /*
-                 * تحديث البيانات من السيرفر
-                 */
 
                 if (status.username) {
 
@@ -695,10 +928,8 @@
 
 
             /*
-             * توجد جلسة في المتصفح
-             * لكن السيرفر غير متصل.
-             *
-             * نحاول إعادة الاتصال.
+             * توجد جلسة ولكن السيرفر
+             * غير متصل
              */
 
             await reconnectAutomatically(
@@ -713,11 +944,6 @@
                 error
             );
 
-
-            /*
-             * لا نذهب مباشرة إلى home.
-             * نتحقق بمحاولة إعادة الاتصال.
-             */
 
             await reconnectAutomatically(
                 savedUsername
