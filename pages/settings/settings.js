@@ -6,7 +6,6 @@
 
         return new Promise((resolve, reject) => {
 
-            // منع تحميل CSS أكثر من مرة
             if (
                 document.querySelector(
                     `link[href="${href}"]`
@@ -34,7 +33,6 @@
 
         return new Promise((resolve, reject) => {
 
-            // منع تحميل JS أكثر من مرة
             if (
                 document.querySelector(
                     `script[src="${src}"]`
@@ -61,17 +59,36 @@
 
         try {
 
-            // تحميل تصميم قائمة اختبار المؤثرات
+            /*
+             * تحميل مؤثر المتابعة
+             */
+
+            await loadCSS(
+                "/effects/follow/follow.css"
+            );
+
+            await loadScript(
+                "/effects/follow/follow.js"
+            );
+
+
+            /*
+             * تحميل قائمة اختبار المؤثرات
+             */
+
             await loadCSS(
                 "/effects/effects-menu/effects-menu.css"
             );
 
-            // تحميل قائمة اختبار المؤثرات
             await loadScript(
                 "/effects/effects-menu/effects-menu.js"
             );
 
-            // إنشاء القائمة داخل Settings
+
+            /*
+             * إنشاء القائمة
+             */
+
             if (
                 window.EffectsTestMenu &&
                 typeof window.EffectsTestMenu.create === "function"
@@ -89,7 +106,7 @@
         } catch (error) {
 
             console.error(
-                "S-LIVE: Settings effects menu error:",
+                "S-LIVE: Settings effects error:",
                 error
             );
         }
