@@ -1,10 +1,9 @@
 "use strict";
 
-const FollowEffect = (() => {
+window.FollowEffect = (() => {
 
     let layer = null;
     let hideTimer = null;
-
 
     function createLayer() {
 
@@ -12,19 +11,16 @@ const FollowEffect = (() => {
             return layer;
         }
 
+        const settingsPage =
+            document.querySelector(".settings-page");
 
-        const homePage =
-            document.querySelector(".home-page");
-
-        if (!homePage) {
-
+        if (!settingsPage) {
             console.error(
-                "S-LIVE: .home-page not found"
+                "S-LIVE: .settings-page not found"
             );
 
             return null;
         }
-
 
         layer =
             document.createElement("div");
@@ -32,19 +28,11 @@ const FollowEffect = (() => {
         layer.className =
             "follow-effect-layer";
 
-
         layer.innerHTML = `
             <div class="follow-glow"></div>
         `;
 
-
-        homePage.appendChild(layer);
-
-
-        console.log(
-            "S-LIVE: Follow effect layer created"
-        );
-
+        settingsPage.appendChild(layer);
 
         return layer;
     }
@@ -56,19 +44,16 @@ const FollowEffect = (() => {
             return;
         }
 
-
         const spark =
             document.createElement("div");
 
         spark.className =
             "follow-spark";
 
-
         spark.textContent =
             Math.random() > 0.5
                 ? "✦"
                 : "✨";
-
 
         spark.style.left =
             `${15 + Math.random() * 70}%`;
@@ -76,25 +61,17 @@ const FollowEffect = (() => {
         spark.style.top =
             `${20 + Math.random() * 55}%`;
 
-
         spark.style.fontSize =
             `${12 + Math.random() * 18}px`;
-
 
         spark.style.animationDelay =
             `${Math.random() * 0.8}s`;
 
-
         layer.appendChild(spark);
-
 
         spark.addEventListener(
             "animationend",
-            () => {
-
-                spark.remove();
-
-            },
+            () => spark.remove(),
             { once: true }
         );
     }
@@ -105,40 +82,25 @@ const FollowEffect = (() => {
         const effectLayer =
             createLayer();
 
-
         if (!effectLayer) {
             return;
         }
 
-
         clearTimeout(hideTimer);
-
 
         effectLayer.classList.remove(
             "active"
         );
 
-
         void effectLayer.offsetWidth;
-
 
         effectLayer.classList.add(
             "active"
         );
 
-
-        /*
-         * نجوم ولمعات
-         */
-
         for (let i = 0; i < 30; i++) {
             createSpark();
         }
-
-
-        /*
-         * يبقى التأثير 5 ثوانٍ
-         */
 
         hideTimer =
             setTimeout(() => {
