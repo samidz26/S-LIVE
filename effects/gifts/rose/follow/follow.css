@@ -1,0 +1,71 @@
+.follow-effect-layer {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 60;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.follow-effect-layer.active {
+    opacity: 1;
+}
+
+.follow-glow {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(255, 255, 255, 0.14),
+            transparent 55%
+        );
+    animation: followGlow 1.8s ease-in-out infinite alternate;
+}
+
+.follow-spark {
+    position: absolute;
+    color: #fff;
+    font-size: 16px;
+    opacity: 0;
+    text-shadow:
+        0 0 5px rgba(255,255,255,.9),
+        0 0 12px rgba(180,140,255,.8);
+    animation: followSpark 2.5s ease-out forwards;
+}
+
+@keyframes followGlow {
+    from {
+        transform: scale(.95);
+        opacity: .4;
+    }
+
+    to {
+        transform: scale(1.08);
+        opacity: 1;
+    }
+}
+
+@keyframes followSpark {
+
+    0% {
+        transform: scale(.2) rotate(0deg);
+        opacity: 0;
+    }
+
+    20% {
+        transform: scale(1.2) rotate(45deg);
+        opacity: 1;
+    }
+
+    60% {
+        transform: scale(1) rotate(120deg);
+        opacity: .9;
+    }
+
+    100% {
+        transform: scale(.3) rotate(220deg);
+        opacity: 0;
+    }
+}
