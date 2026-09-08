@@ -1,46 +1,81 @@
 "use strict";
 
-console.log("S-LIVE HOME JS loaded");
+console.log(
+    "S-LIVE HOME JS loaded"
+);
 
 
 /* =========================================
-   عناصر Home
+   STATE
+========================================= */
+
+let eventSource = null;
+
+let memberTimer = null;
+
+let eventTimer = null;
+
+let homeCleanedUp = false;
+
+
+/* =========================================
+   ELEMENTS
 ========================================= */
 
 const memberProfile =
-    document.getElementById("member-profile");
+    document.getElementById(
+        "member-profile"
+    );
 
 const memberName =
-    document.getElementById("member-name");
+    document.getElementById(
+        "member-name"
+    );
 
 const memberUsername =
-    document.getElementById("member-username");
+    document.getElementById(
+        "member-username"
+    );
 
 const liveEventCard =
-    document.getElementById("live-event-card");
+    document.getElementById(
+        "live-event-card"
+    );
 
 
 const liveEventsCenter =
-    document.getElementById("live-events-center");
+    document.getElementById(
+        "live-events-center"
+    );
 
 const liveEventType =
-    document.getElementById("live-event-type");
+    document.getElementById(
+        "live-event-type"
+    );
 
 const liveEventAvatar =
-    document.getElementById("live-event-avatar");
+    document.getElementById(
+        "live-event-avatar"
+    );
 
 const liveEventUser =
-    document.getElementById("live-event-user");
+    document.getElementById(
+        "live-event-user"
+    );
 
 const liveEventContent =
-    document.getElementById("live-event-content");
+    document.getElementById(
+        "live-event-content"
+    );
 
 const liveEventValue =
-    document.getElementById("live-event-value");
+    document.getElementById(
+        "live-event-value"
+    );
 
 
 /* =========================================
-   تحويل رابط الصورة إلى Proxy
+   IMAGE URL
 ========================================= */
 
 function getImageUrl(url) {
@@ -49,12 +84,15 @@ function getImageUrl(url) {
         return "";
     }
 
+
     if (
         url.startsWith("/api/") ||
         url.startsWith("data:")
     ) {
+
         return url;
     }
+
 
     return (
         "/api/connection/proxy-image?url=" +
@@ -64,16 +102,19 @@ function getImageUrl(url) {
 
 
 /* =========================================
-   عرض آخر شخص دخل
+   SHOW MEMBER
 ========================================= */
-
-let memberTimer = null;
 
 function showMember(member) {
 
-    if (!member) {
+    if (
+        homeCleanedUp ||
+        !member
+    ) {
+
         return;
     }
+
 
     const nickname =
         member.nickname ||
@@ -81,10 +122,15 @@ function showMember(member) {
         member.username ||
         "شخص جديد";
 
+
     const username =
         member.uniqueId
-            ? "@" + member.uniqueId.replace(/^@/, "")
+            ? "@" +
+              String(
+                  member.uniqueId
+              ).replace(/^@/, "")
             : "";
+
 
     const profilePicture =
         member.profilePictureUrl ||
@@ -94,45 +140,77 @@ function showMember(member) {
 
 
     if (memberName) {
-        memberName.textContent = nickname;
+
+        memberName.textContent =
+            nickname;
     }
+
 
     if (memberUsername) {
+
         memberUsername.textContent =
-            username || "عضو جديد في اللايف";
+            username ||
+            "عضو جديد في اللايف";
     }
 
 
-    if (memberProfile && profilePicture) {
+    if (
+        memberProfile &&
+        profilePicture
+    ) {
+
         memberProfile.src =
-            getImageUrl(profilePicture);
+            getImageUrl(
+                profilePicture
+            );
     }
 
 
     if (liveEventCard) {
 
-        liveEventCard.classList.add("show");
+        liveEventCard.classList.add(
+            "show"
+        );
 
-        clearTimeout(memberTimer);
 
-        memberTimer = setTimeout(() => {
+        clearTimeout(
+            memberTimer
+        );
 
-            liveEventCard.classList.remove("show");
 
-        }, 5000);
+        memberTimer =
+            setTimeout(
+                function () {
+
+                    if (
+                        !homeCleanedUp &&
+                        liveEventCard
+                    ) {
+
+                        liveEventCard.classList.remove(
+                            "show"
+                        );
+                    }
+
+                },
+                5000
+            );
     }
 }
 
 
 /* =========================================
-   عرض حدث اللايف
+   PLAY LIVE EVENT
 ========================================= */
-
-let eventTimer = null;
 
 function playLiveEvent(event) {
 
-    if (!event || !liveEventsCenter) {
+    if (
+        homeCleanedUp ||
+        !event ||
+        !liveEventsCenter
+    ) {
+
         return;
     }
 
@@ -173,25 +251,32 @@ function playLiveEvent(event) {
 
     /* نوع الحدث */
 
+    const eventLabels = {
+
+        member:
+            "👋 دخل اللايف",
+
+        gift:
+            "🎁 دعم جديد",
+
+        follow:
+            "➕ متابعة جديدة",
+
+        subscribe:
+            "🔔 اشتراك جديد",
+
+        share:
+            "🔄 مشاركة",
+
+        like:
+            "❤️ تكبيس",
+
+        comment:
+            "💬 تعليق"
+    };
+
+
     if (liveEventType) {
-
-        const eventLabels = {
-
-            member: "👋 دخل اللايف",
-
-            gift: "🎁 دعم جديد",
-
-            follow: "➕ متابعة جديدة",
-
-            subscribe: "🔔 اشتراك جديد",
-
-            share: "🔄 مشاركة",
-
-            like: "❤️ تكبيس",
-
-            comment: "💬 تعليق"
-
-        };
 
         liveEventType.textContent =
             eventLabels[type] ||
@@ -207,20 +292,25 @@ function playLiveEvent(event) {
     ) {
 
         liveEventAvatar.src =
-            getImageUrl(profilePicture);
+            getImageUrl(
+                profilePicture
+            );
     }
 
 
     /* الاسم */
 
     if (liveEventUser) {
-        liveEventUser.textContent = user;
+
+        liveEventUser.textContent =
+            user;
     }
 
 
     /* المحتوى */
 
     if (liveEventContent) {
+
         liveEventContent.textContent =
             content;
     }
@@ -237,43 +327,122 @@ function playLiveEvent(event) {
     }
 
 
-    /* إظهار */
+    /* إظهار الحدث */
 
-    liveEventsCenter.classList.add("show");
+    liveEventsCenter.classList.add(
+        "show"
+    );
 
 
-    clearTimeout(eventTimer);
+    clearTimeout(
+        eventTimer
+    );
 
-    eventTimer = setTimeout(() => {
 
-        liveEventsCenter.classList.remove("show");
+    eventTimer =
+        setTimeout(
+            function () {
 
-    }, 4000);
+                if (
+                    !homeCleanedUp &&
+                    liveEventsCenter
+                ) {
+
+                    liveEventsCenter.classList.remove(
+                        "show"
+                    );
+                }
+
+            },
+            4000
+        );
 }
 
 
 /* =========================================
-   استقبال أحداث TikTok عبر SSE
+   CLOSE SSE
 ========================================= */
 
-let eventSource = null;
+function closeEventSource() {
 
+    if (!eventSource) {
+        return;
+    }
+
+
+    console.log(
+        "S-LIVE: closing SSE"
+    );
+
+
+    try {
+
+        eventSource.close();
+
+    } catch (error) {
+
+        console.warn(
+            "S-LIVE SSE close error:",
+            error
+        );
+    }
+
+
+    eventSource =
+        null;
+}
+
+
+/* =========================================
+   CLEAR HOME TIMERS
+========================================= */
+
+function clearHomeTimers() {
+
+    if (memberTimer) {
+
+        clearTimeout(
+            memberTimer
+        );
+
+        memberTimer =
+            null;
+    }
+
+
+    if (eventTimer) {
+
+        clearTimeout(
+            eventTimer
+        );
+
+        eventTimer =
+            null;
+    }
+}
+
+
+/* =========================================
+   CONNECT SSE
+========================================= */
 
 function connectEvents() {
 
-    if (eventSource) {
+    /*
+     * إغلاق أي اتصال قديم أولًا.
+     */
 
-        try {
-            eventSource.close();
-        } catch (error) {
-            console.warn(
-                "SSE close error:",
-                error
-            );
-        }
+    closeEventSource();
 
-        eventSource = null;
+
+    if (homeCleanedUp) {
+        return;
     }
+
+
+    console.log(
+        "S-LIVE: connecting SSE..."
+    );
 
 
     eventSource =
@@ -283,29 +452,40 @@ function connectEvents() {
 
 
     /* =====================================
-       دخول شخص
+       MEMBER
     ===================================== */
 
     eventSource.addEventListener(
         "member",
         function (event) {
 
+            if (homeCleanedUp) {
+                return;
+            }
+
+
             try {
 
                 const data =
-                    JSON.parse(event.data);
+                    JSON.parse(
+                        event.data
+                    );
+
 
                 console.log(
-                    "MEMBER:",
+                    "S-LIVE MEMBER:",
                     data
                 );
 
-                showMember(data);
+
+                showMember(
+                    data
+                );
 
             } catch (error) {
 
                 console.error(
-                    "MEMBER parse error:",
+                    "S-LIVE MEMBER parse error:",
                     error
                 );
             }
@@ -314,32 +494,44 @@ function connectEvents() {
 
 
     /* =====================================
-       دعم / هدية
+       GIFT
     ===================================== */
 
     eventSource.addEventListener(
         "gift",
         function (event) {
 
+            if (homeCleanedUp) {
+                return;
+            }
+
+
             try {
 
                 const data =
-                    JSON.parse(event.data);
+                    JSON.parse(
+                        event.data
+                    );
+
 
                 console.log(
-                    "GIFT:",
+                    "S-LIVE GIFT:",
                     data
                 );
 
+
                 playLiveEvent({
+
                     ...data,
-                    type: "gift"
+
+                    type:
+                        "gift"
                 });
 
             } catch (error) {
 
                 console.error(
-                    "GIFT parse error:",
+                    "S-LIVE GIFT parse error:",
                     error
                 );
             }
@@ -348,32 +540,44 @@ function connectEvents() {
 
 
     /* =====================================
-       متابعة
+       FOLLOW
     ===================================== */
 
     eventSource.addEventListener(
         "follow",
         function (event) {
 
+            if (homeCleanedUp) {
+                return;
+            }
+
+
             try {
 
                 const data =
-                    JSON.parse(event.data);
+                    JSON.parse(
+                        event.data
+                    );
+
 
                 console.log(
-                    "FOLLOW:",
+                    "S-LIVE FOLLOW:",
                     data
                 );
 
+
                 playLiveEvent({
+
                     ...data,
-                    type: "follow"
+
+                    type:
+                        "follow"
                 });
 
             } catch (error) {
 
                 console.error(
-                    "FOLLOW parse error:",
+                    "S-LIVE FOLLOW parse error:",
                     error
                 );
             }
@@ -382,32 +586,44 @@ function connectEvents() {
 
 
     /* =====================================
-       اشتراك
+       SUBSCRIBE
     ===================================== */
 
     eventSource.addEventListener(
         "subscribe",
         function (event) {
 
+            if (homeCleanedUp) {
+                return;
+            }
+
+
             try {
 
                 const data =
-                    JSON.parse(event.data);
+                    JSON.parse(
+                        event.data
+                    );
+
 
                 console.log(
-                    "SUBSCRIBE:",
+                    "S-LIVE SUBSCRIBE:",
                     data
                 );
 
+
                 playLiveEvent({
+
                     ...data,
-                    type: "subscribe"
+
+                    type:
+                        "subscribe"
                 });
 
             } catch (error) {
 
                 console.error(
-                    "SUBSCRIBE parse error:",
+                    "S-LIVE SUBSCRIBE parse error:",
                     error
                 );
             }
@@ -416,33 +632,255 @@ function connectEvents() {
 
 
     /* =====================================
-       اتصال SSE
+       SHARE
     ===================================== */
 
-    eventSource.onopen = function () {
+    eventSource.addEventListener(
+        "share",
+        function (event) {
 
-        console.log(
-            "S-LIVE SSE connected"
-        );
-    };
+            if (homeCleanedUp) {
+                return;
+            }
+
+
+            try {
+
+                const data =
+                    JSON.parse(
+                        event.data
+                    );
+
+
+                playLiveEvent({
+
+                    ...data,
+
+                    type:
+                        "share"
+                });
+
+            } catch (error) {
+
+                console.error(
+                    "S-LIVE SHARE parse error:",
+                    error
+                );
+            }
+        }
+    );
 
 
     /* =====================================
-       خطأ
+       LIKE
     ===================================== */
 
-    eventSource.onerror = function (error) {
+    eventSource.addEventListener(
+        "like",
+        function (event) {
 
-        console.warn(
-            "S-LIVE SSE error:",
-            error
-        );
-    };
+            if (homeCleanedUp) {
+                return;
+            }
+
+
+            try {
+
+                const data =
+                    JSON.parse(
+                        event.data
+                    );
+
+
+                playLiveEvent({
+
+                    ...data,
+
+                    type:
+                        "like"
+                });
+
+            } catch (error) {
+
+                console.error(
+                    "S-LIVE LIKE parse error:",
+                    error
+                );
+            }
+        }
+    );
+
+
+    /* =====================================
+       COMMENT
+    ===================================== */
+
+    eventSource.addEventListener(
+        "comment",
+        function (event) {
+
+            if (homeCleanedUp) {
+                return;
+            }
+
+
+            try {
+
+                const data =
+                    JSON.parse(
+                        event.data
+                    );
+
+
+                playLiveEvent({
+
+                    ...data,
+
+                    type:
+                        "comment"
+                });
+
+            } catch (error) {
+
+                console.error(
+                    "S-LIVE COMMENT parse error:",
+                    error
+                );
+            }
+        }
+    );
+
+
+    /* =====================================
+       OPEN
+    ===================================== */
+
+    eventSource.onopen =
+        function () {
+
+            if (homeCleanedUp) {
+                return;
+            }
+
+
+            console.log(
+                "S-LIVE SSE connected"
+            );
+        };
+
+
+    /* =====================================
+       ERROR
+    ===================================== */
+
+    eventSource.onerror =
+        function (error) {
+
+            if (homeCleanedUp) {
+                return;
+            }
+
+
+            console.warn(
+                "S-LIVE SSE error:",
+                error
+            );
+        };
 }
 
 
 /* =========================================
-   تشغيل Home
+   CLEANUP HOME
+========================================= */
+
+function cleanupHome() {
+
+    if (homeCleanedUp) {
+        return;
+    }
+
+
+    console.log(
+        "S-LIVE HOME cleanup"
+    );
+
+
+    homeCleanedUp =
+        true;
+
+
+    /*
+     * إغلاق SSE
+     */
+
+    closeEventSource();
+
+
+    /*
+     * إلغاء المؤقتات
+     */
+
+    clearHomeTimers();
+
+
+    /*
+     * إخفاء العناصر المتحركة.
+     */
+
+    if (liveEventCard) {
+
+        liveEventCard.classList.remove(
+            "show"
+        );
+    }
+
+
+    if (liveEventsCenter) {
+
+        liveEventsCenter.classList.remove(
+            "show"
+        );
+    }
+}
+
+
+/* =========================================
+   APP CLEANUP EVENT
+========================================= */
+
+window.addEventListener(
+    "s-live-cleanup",
+    cleanupHome
+);
+
+
+/* =========================================
+   PAGE CHANGING
+========================================= */
+
+window.addEventListener(
+    "s-live-page-changing",
+    function (event) {
+
+        /*
+         * إذا كانت الصفحة الحالية Home،
+         * نظفها قبل الانتقال.
+         */
+
+        if (
+            event.detail &&
+            event.detail.page ===
+                "home"
+        ) {
+
+            cleanupHome();
+        }
+    }
+);
+
+
+/* =========================================
+   INITIALIZE HOME
 ========================================= */
 
 function initHome() {
@@ -451,12 +889,32 @@ function initHome() {
         "S-LIVE HOME initialized"
     );
 
+
+    /*
+     * نضمن أن الحالة جديدة
+     * عند تحميل Home مرة أخرى.
+     */
+
+    homeCleanedUp =
+        false;
+
+
+    clearHomeTimers();
+
+
+    closeEventSource();
+
+
+    /*
+     * بدء SSE جديد.
+     */
+
     connectEvents();
 }
 
 
 /* =========================================
-   منع تشغيل الكود قبل وجود الصفحة
+   START
 ========================================= */
 
 if (
@@ -472,4 +930,4 @@ if (
 } else {
 
     initHome();
-}
+} 
