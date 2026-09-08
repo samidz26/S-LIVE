@@ -1,0 +1,107 @@
+.rose-effect-layer {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.rose-effect-layer.active {
+    opacity: 1;
+}
+
+/* وهج الخلفية */
+.rose-effect-glow {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(255, 80, 120, 0.18),
+            transparent 55%
+        );
+    animation: roseGlow 2s ease-in-out infinite alternate;
+}
+
+/* الوردة */
+.rose-particle {
+    position: absolute;
+    top: -70px;
+    font-size: 28px;
+    opacity: 0;
+    filter: drop-shadow(0 0 7px rgba(255, 80, 120, 0.7));
+    animation: roseFall linear forwards;
+}
+
+@keyframes roseFall {
+    0% {
+        transform:
+            translate3d(0, -60px, 0)
+            rotate(0deg);
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    50% {
+        transform:
+            translate3d(35px, 50vh, 0)
+            rotate(180deg);
+        opacity: 1;
+    }
+
+    100% {
+        transform:
+            translate3d(-30px, 110vh, 0)
+            rotate(360deg);
+        opacity: 0;
+    }
+}
+
+@keyframes roseGlow {
+    from {
+        opacity: 0.45;
+        transform: scale(1);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1.08);
+    }
+}
+
+/* طبقة بتلات صغيرة */
+.rose-petal {
+    position: absolute;
+    top: -20px;
+    width: 8px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(255, 105, 140, 0.8);
+    filter: blur(0.3px);
+    animation: petalFall linear forwards;
+}
+
+@keyframes petalFall {
+    0% {
+        transform:
+            translateY(-20px)
+            rotate(0deg);
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 0.8;
+    }
+
+    100% {
+        transform:
+            translateY(110vh)
+            rotate(540deg);
+        opacity: 0;
+    }
+}
