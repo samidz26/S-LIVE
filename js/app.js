@@ -15,18 +15,13 @@
     let activePageScript = null;
     let activePageStyle = null;
 
+    const PAGE_STORAGE_KEY =
+        "s_live_current_page";
+
 
     /* =========================================
        ELEMENTS
     ========================================= */
-
-    function getAppScreen() {
-
-        return document.getElementById(
-            "app-screen"
-        );
-    }
-
 
     function getPageContainer() {
 
@@ -35,11 +30,6 @@
         );
     }
 
-
-    /* =========================================
-       FIXED ACCOUNT
-       الحساب الثابت
-    ========================================= */
 
     function getFixedAccount() {
 
@@ -66,6 +56,32 @@
 
 
     /* =========================================
+       IMAGE
+    ========================================= */
+
+    function getImageUrl(url) {
+
+        if (!url) {
+            return "";
+        }
+
+
+        if (
+            url.startsWith("/api/") ||
+            url.startsWith("data:")
+        ) {
+            return url;
+        }
+
+
+        return (
+            "/api/connection/proxy-image?url=" +
+            encodeURIComponent(url)
+        );
+    }
+
+
+    /* =========================================
        ACCOUNT VISIBILITY
     ========================================= */
 
@@ -83,7 +99,8 @@
 
 
         /*
-         * الحساب لا يظهر في صفحة الاتصال
+         * في صفحة الاتصال:
+         * نخفي الحساب مباشرة.
          */
 
         if (pageName === "connection") {
@@ -98,7 +115,8 @@
 
 
         /*
-         * يظهر في Home / Games / Settings
+         * باقي الصفحات:
+         * يظهر الحساب.
          */
 
         account.style.display =
@@ -142,53 +160,33 @@
 
             usernameElement.textContent =
                 username
-                    ? "@" + username.replace(/^@/, "")
+                    ? "@" +
+                      username.replace(/^@/, "")
                     : "@username";
         }
 
 
-        if (
-            profileImage &&
-            profilePicture
-        ) {
+        if (profileImage) {
 
-            profileImage.src =
-                getImageUrl(
-                    profilePicture
+            if (profilePicture) {
+
+                profileImage.src =
+                    getImageUrl(
+                        profilePicture
+                    );
+
+            } else {
+
+                profileImage.removeAttribute(
+                    "src"
                 );
+            }
         }
     }
 
 
     /* =========================================
-       IMAGE URL
-    ========================================= */
-
-    function getImageUrl(url) {
-
-        if (!url) {
-            return "";
-        }
-
-
-        if (
-            url.startsWith("/api/") ||
-            url.startsWith("data:")
-        ) {
-
-            return url;
-        }
-
-
-        return (
-            "/api/connection/proxy-image?url=" +
-            encodeURIComponent(url)
-        );
-    }
-
-
-    /* =========================================
-       ACCOUNT DROPDOWN
+       DROPDOWN
     ========================================= */
 
     function openAccountDropdown() {
@@ -235,20 +233,17 @@
             getAccountButton();
 
 
-        if (!dropdown) {
-            return;
+        if (dropdown) {
+
+            dropdown.classList.remove(
+                "open"
+            );
+
+            dropdown.setAttribute(
+                "aria-hidden",
+                "true"
+            );
         }
-
-
-        dropdown.classList.remove(
-            "open"
-        );
-
-
-        dropdown.setAttribute(
-            "aria-hidden",
-            "true"
-        );
 
 
         if (button) {
@@ -288,13 +283,14 @@
 
 
     /* =========================================
-       ACCOUNT EVENTS
+       ACCOUNT MENU
     ========================================= */
 
     function initializeAccountMenu() {
 
         const accountButton =
             getAccountButton();
+
 
         const dropdown =
             getAccountDropdown();
@@ -303,7 +299,7 @@
         if (!accountButton) {
 
             console.warn(
-                "S-LIVE: live-account-button غير موجود"
+                "S-LIVE: account button not found"
             );
 
             return;
@@ -311,13 +307,15 @@
 
 
         /*
-         * منع تكرار الأحداث
+         * منع تسجيل الأحداث أكثر من مرة.
          */
 
         if (
             accountButton.dataset
                 .sLiveInitialized === "true"
         ) {
+
+            updateAccountInfo();
 
             return;
         }
@@ -327,9 +325,7 @@
             .sLiveInitialized = "true";
 
 
-        /*
-         * فتح / إغلاق القائمة
-         */
+        /* فتح القائمة */
 
         accountButton.addEventListener(
             "click",
@@ -342,9 +338,7 @@
         );
 
 
-        /*
-         * منع إغلاق القائمة عند الضغط داخلها
-         */
+        /* منع إغلاقها عند الضغط داخل القائمة */
 
         if (dropdown) {
 
@@ -358,9 +352,7 @@
         }
 
 
-        /*
-         * الضغط خارج القائمة
-         */
+        /* الضغط خارج القائمة */
 
         document.addEventListener(
             "click",
@@ -371,9 +363,7 @@
         );
 
 
-        /*
-         * Home
-         */
+        /* Home */
 
         const homeButton =
             document.getElementById(
@@ -397,9 +387,7 @@
         }
 
 
-        /*
-         * Games
-         */
+        /* Games */
 
         const gamesButton =
             document.getElementById(
@@ -423,9 +411,7 @@
         }
 
 
-        /*
-         * Settings
-         */
+        /* Settings */
 
         const settingsButton =
             document.getElementById(
@@ -449,9 +435,7 @@
         }
 
 
-        /*
-         * Disconnect
-         */
+        /* Disconnect */
 
         const disconnectButton =
             document.getElementById(
@@ -467,21 +451,155 @@
 
                     closeAccountDropdown();
 
-                    await disconnect();
+
+                    /*
+                     * نخفي الحساب فورًا.
+                     */
+
+                    hideAccountImmediately();
+
+
+                    /*
+                     * ننتقل فورًا إلى Connection
+                     * من ناحية الواجهة.
+                     */
 
                     await loadPage(
                         "connection"
                     );
+
+
+                    /*
+                     * ثم نقطع الاتصال في الخلفية.
+                     */
+
+                    try {
+
+                        await disconnect();
+
+                    } catch (error) {
+
+                        console.error(
+                            "S-LIVE disconnect error:",
+                            error
+                        );
+                    }
                 }
             );
         }
 
 
+        updateAccountInfo();
+    }
+
+
+    /* =========================================
+       HIDE ACCOUNT IMMEDIATELY
+    ========================================= */
+
+    function hideAccountImmediately() {
+
+        const account =
+            getFixedAccount();
+
+
+        if (account) {
+
+            account.style.display =
+                "none";
+        }
+
+
+        closeAccountDropdown();
+
+
         /*
-         * تحديث بيانات الحساب
+         * إزالة صورة واسم الحساب
+         * فورًا من الواجهة.
          */
 
-        updateAccountInfo();
+        const usernameElement =
+            document.getElementById(
+                "live-username"
+            );
+
+        const profileImage =
+            document.getElementById(
+                "live-profile-image"
+            );
+
+
+        if (usernameElement) {
+
+            usernameElement.textContent =
+                "@username";
+        }
+
+
+        if (profileImage) {
+
+            profileImage.removeAttribute(
+                "src"
+            );
+        }
+    }
+
+
+    /* =========================================
+       SAVE CURRENT PAGE
+    ========================================= */
+
+    function saveCurrentPage(
+        pageName
+    ) {
+
+        if (!pageName) {
+            return;
+        }
+
+
+        if (pageName === "connection") {
+            return;
+        }
+
+
+        localStorage.setItem(
+            PAGE_STORAGE_KEY,
+            pageName
+        );
+    }
+
+
+    /* =========================================
+       GET SAVED PAGE
+    ========================================= */
+
+    function getSavedPage() {
+
+        const page =
+            localStorage.getItem(
+                PAGE_STORAGE_KEY
+            );
+
+
+        const allowedPages = [
+            "home",
+            "games",
+            "settings"
+        ];
+
+
+        if (
+            allowedPages.includes(
+                page
+            )
+        ) {
+
+            return page;
+        }
+
+
+        return "home";
     }
 
 
@@ -489,7 +607,9 @@
        LOAD PAGE
     ========================================= */
 
-    async function loadPage(pageName) {
+    async function loadPage(
+        pageName
+    ) {
 
         const pageContainer =
             getPageContainer();
@@ -508,7 +628,7 @@
         try {
 
             /*
-             * تنظيف الصفحة السابقة
+             * تنظيف الصفحة الحالية
              */
 
             cleanupCurrentPage();
@@ -519,6 +639,20 @@
              */
 
             closeAccountDropdown();
+
+
+            /*
+             * إذا كانت Connection:
+             * أخف الحساب فورًا.
+             */
+
+            if (
+                pageName ===
+                "connection"
+            ) {
+
+                hideAccountImmediately();
+            }
 
 
             /*
@@ -547,7 +681,7 @@
 
 
             /*
-             * تحميل محتوى الصفحة فقط
+             * وضع الصفحة الجديدة
              */
 
             pageContainer.innerHTML =
@@ -573,11 +707,20 @@
 
 
             /*
-             * الصفحة الحالية
+             * تحديث الصفحة الحالية
              */
 
             activePage =
                 pageName;
+
+
+            /*
+             * حفظ الصفحة
+             */
+
+            saveCurrentPage(
+                pageName
+            );
 
 
             /*
@@ -624,7 +767,7 @@
 
 
     /* =========================================
-       LOAD PAGE CSS
+       LOAD CSS
     ========================================= */
 
     function loadPageStyles(
@@ -682,7 +825,7 @@
 
 
     /* =========================================
-       LOAD PAGE JS
+       LOAD JS
     ========================================= */
 
     function loadPageScript(
@@ -703,7 +846,7 @@
 
 
                 script.src =
-                    `pages/${pageName}/${pageName}.js`;
+                    `pages/${pageName}/${pageName}.js?ts=${Date.now()}`;
 
 
                 script.onload =
@@ -742,7 +885,8 @@
     function cleanupCurrentPage() {
 
         /*
-         * إشعار الصفحة الحالية
+         * اطلب من الصفحة الحالية
+         * تنظيف كل مواردها.
          */
 
         window.dispatchEvent(
@@ -758,8 +902,15 @@
         );
 
 
+        window.dispatchEvent(
+            new CustomEvent(
+                "s-live-cleanup"
+            )
+        );
+
+
         /*
-         * حذف JS الصفحة
+         * حذف JS
          */
 
         if (activePageScript) {
@@ -772,7 +923,7 @@
 
 
         /*
-         * حذف CSS الصفحة
+         * حذف CSS
          */
 
         if (activePageStyle) {
@@ -789,22 +940,12 @@
                     "active-page-style"
                 );
 
+
             if (oldStyle) {
 
                 oldStyle.remove();
             }
         }
-
-
-        /*
-         * إغلاق SSE
-         */
-
-        window.dispatchEvent(
-            new CustomEvent(
-                "s-live-cleanup"
-            )
-        );
     }
 
 
@@ -878,6 +1019,11 @@
 
         localStorage.removeItem(
             "s_live_profile_picture"
+        );
+
+
+        localStorage.removeItem(
+            PAGE_STORAGE_KEY
         );
     }
 
@@ -954,14 +1100,25 @@
 
     async function disconnect() {
 
+        /*
+         * الحساب يختفي قبل أي انتظار.
+         */
+
+        hideAccountImmediately();
+
+
+        /*
+         * تنظيف الصفحة الحالية.
+         */
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "s-live-cleanup"
+            )
+        );
+
+
         try {
-
-            window.dispatchEvent(
-                new CustomEvent(
-                    "s-live-cleanup"
-                )
-            );
-
 
             const response =
                 await fetch(
@@ -1001,15 +1158,13 @@
 
             clearSession();
 
-            updateAccountInfo();
-
-            closeAccountDropdown();
+            hideAccountImmediately();
         }
     }
 
 
     /* =========================================
-       CHECK SERVER STATUS
+       STATUS
     ========================================= */
 
     async function getStatus() {
@@ -1056,8 +1211,12 @@
                 );
 
 
+            const savedPage =
+                getSavedPage();
+
+
             await loadPage(
-                "home"
+                savedPage
             );
 
 
@@ -1092,7 +1251,7 @@
     async function initializeApp() {
 
         /*
-         * تشغيل قائمة الحساب مرة واحدة
+         * تهيئة قائمة الحساب مرة واحدة.
          */
 
         initializeAccountMenu();
@@ -1103,7 +1262,7 @@
 
 
         /*
-         * لا توجد جلسة
+         * لا توجد جلسة.
          */
 
         if (!savedUsername) {
@@ -1123,7 +1282,7 @@
 
 
             /*
-             * السيرفر متصل
+             * السيرفر متصل.
              */
 
             if (
@@ -1168,8 +1327,17 @@
                 updateAccountInfo();
 
 
+                /*
+                 * العودة إلى الصفحة
+                 * التي كان المستخدم فيها.
+                 */
+
+                const savedPage =
+                    getSavedPage();
+
+
                 await loadPage(
-                    "home"
+                    savedPage
                 );
 
 
@@ -1178,7 +1346,7 @@
 
 
             /*
-             * إعادة الاتصال
+             * إعادة الاتصال.
              */
 
             await reconnectAutomatically(
@@ -1219,7 +1387,9 @@
 
         reconnectAutomatically,
 
-        clearSession
+        clearSession,
+
+        updateAccountInfo
     };
 
 
