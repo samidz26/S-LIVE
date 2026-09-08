@@ -19,12 +19,11 @@ let loadingPage = false;
 
 
 /* =========================================
-   ELEMENTS
+   ELEMENT
 ========================================= */
 
-function $(id) {
-    return document.getElementById(id);
-}
+const $ = id =>
+    document.getElementById(id);
 
 
 /* =========================================
@@ -107,11 +106,13 @@ function hideAccount() {
 
 function openMenu() {
 
-    const menu = $("live-dropdown");
+    const menu =
+        $("live-dropdown");
 
     if (!menu) return;
 
     menu.classList.add("open");
+
     menu.setAttribute(
         "aria-hidden",
         "false"
@@ -121,6 +122,7 @@ function openMenu() {
         $("live-account-button");
 
     if (button) {
+
         button.setAttribute(
             "aria-expanded",
             "true"
@@ -131,7 +133,8 @@ function openMenu() {
 
 function closeMenu() {
 
-    const menu = $("live-dropdown");
+    const menu =
+        $("live-dropdown");
 
     if (menu) {
 
@@ -158,33 +161,36 @@ function closeMenu() {
 
 function toggleMenu() {
 
-    const menu = $("live-dropdown");
+    const menu =
+        $("live-dropdown");
 
     if (!menu) return;
 
-    if (menu.classList.contains("open")) {
-        closeMenu();
-    } else {
-        openMenu();
-    }
+    menu.classList.contains("open")
+        ? closeMenu()
+        : openMenu();
 }
 
 
 /* =========================================
-   CLEAN CURRENT PAGE
+   CLEAN OLD PAGE
 ========================================= */
 
 function cleanupPage() {
 
     if (currentScript) {
+
         currentScript.remove();
         currentScript = null;
     }
 
+
     if (currentStyle) {
+
         currentStyle.remove();
         currentStyle = null;
     }
+
 
     currentPage = null;
 }
@@ -196,17 +202,35 @@ function cleanupPage() {
 
 function loadPageCSS(name) {
 
-    const link =
-        document.createElement("link");
+    return new Promise(resolve => {
 
-    link.rel = "stylesheet";
+        const link =
+            document.createElement("link");
 
-    link.href =
-        `pages/${name}/${name}.css`;
+        link.rel = "stylesheet";
 
-    document.head.appendChild(link);
+        link.href =
+            `pages/${name}/${name}.css?${Date.now()}`;
 
-    currentStyle = link;
+
+        link.onload = () => {
+
+            currentStyle = link;
+
+            resolve();
+        };
+
+
+        link.onerror = () => {
+
+            currentStyle = link;
+
+            resolve();
+        };
+
+
+        document.head.appendChild(link);
+    });
 }
 
 
@@ -222,13 +246,24 @@ function loadPageJS(name) {
     script.src =
         `pages/${name}/${name}.js?${Date.now()}`;
 
-    /*
-     * لا ننتظر تحميل JS
-     */
+
+    script.onload = () => {
+
+        currentScript = script;
+    };
+
+
+    script.onerror = () => {
+
+        console.error(
+            `S-LIVE: ${name}.js could not load`
+        );
+
+        script.remove();
+    };
+
 
     document.body.appendChild(script);
-
-    currentScript = script;
 }
 
 
@@ -242,12 +277,12 @@ async function loadPage(name) {
         name !== "connection" &&
         !PAGES.includes(name)
     ) {
-        return;
+        return false;
     }
 
 
     if (loadingPage) {
-        return;
+        return false;
     }
 
 
@@ -255,7 +290,7 @@ async function loadPage(name) {
         $("s-live-page-container");
 
     if (!target) {
-        return;
+        return false;
     }
 
 
@@ -264,11 +299,20 @@ async function loadPage(name) {
     closeMenu();
 
 
+    /*
+     * نخفي الحاوية أثناء التحميل
+     * لمنع ظهور HTML بدون CSS.
+     */
+
+    target.style.visibility =
+        "hidden";
+
+
     try {
 
         const response =
             await fetch(
-                `pages/${name}/${name}.html`,
+                `pages/${name}/${name}.html?${Date.now()}`,
                 {
                     cache: "no-store"
                 }
@@ -276,6 +320,7 @@ async function loadPage(name) {
 
 
         if (!response.ok) {
+
             throw new Error(
                 "تعذر تحميل الصفحة"
             );
@@ -287,33 +332,52 @@ async function loadPage(name) {
 
 
         /*
-         * إزالة الصفحة القديمة
+         * تنظيف الصفحة القديمة
          */
 
         cleanupPage();
 
 
         /*
-         * عرض الصفحة الجديدة فورًا
+         * وضع HTML الجديد
          */
 
-        target.innerHTML = html;
-
-        currentPage = name;
+        target.innerHTML =
+            html;
 
 
         /*
-         * CSS و JS يتم تحميلهما
-         * بعد ظهور HTML
+         * انتظار CSS
          */
 
-        loadPageCSS(name);
+        await loadPageCSS(name);
+
+
+        /*
+         * الآن الصفحة جاهزة بصريًا
+         */
+
+        currentPage =
+            name;
+
+
+        /*
+         * إظهار الصفحة
+         */
+
+        target.style.visibility =
+            "visible";
+
+
+        /*
+         * تحميل JS بعد ظهور الصفحة
+         */
 
         loadPageJS(name);
 
 
         /*
-         * الحساب
+         * الحساب الثابت
          */
 
         if (name === "connection") {
@@ -331,12 +395,20 @@ async function loadPage(name) {
         }
 
 
+        return true;
+
+
     } catch (error) {
 
         console.error(
             "S-LIVE page error:",
             error
         );
+
+        target.innerHTML = "";
+
+        return false;
+
 
     } finally {
 
@@ -484,8 +556,6 @@ async function disconnect() {
 
     hideAccount();
 
-    cleanupPage();
-
     clearSession();
 
 
@@ -501,7 +571,7 @@ async function disconnect() {
     } catch (error) {
 
         console.error(
-            "Disconnect error:",
+            "S-LIVE disconnect error:",
             error
         );
     }
@@ -554,7 +624,7 @@ function setupMenu() {
 
         accountButton.addEventListener(
             "click",
-            function (event) {
+            event => {
 
                 event.stopPropagation();
 
@@ -621,7 +691,7 @@ function setupMenu() {
 
 
 /* =========================================
-   START APP
+   START
 ========================================= */
 
 async function startApp() {
@@ -677,7 +747,7 @@ async function startApp() {
 
 
         /*
-         * محاولة إعادة الاتصال
+         * إعادة الاتصال
          */
 
         await connect(username);
@@ -737,4 +807,4 @@ if (
 } else {
 
     startApp();
-} 
+}
