@@ -107,13 +107,15 @@ function getFirstUrl(value) {
 ========================================= */
 
 function getBroadcasterProfilePicture(connection) {
-
+function getBroadcasterProfilePicture(connection) {
     try {
-
         const roomInfo =
             connection?.roomInfo;
 
         if (!roomInfo) {
+            console.log(
+                "S-LIVE: roomInfo not found"
+            );
             return null;
         }
 
@@ -121,19 +123,54 @@ function getBroadcasterProfilePicture(connection) {
             roomInfo.owner ||
             roomInfo.room?.owner ||
             roomInfo.anchor ||
-            roomInfo.host;
+            roomInfo.host ||
+            roomInfo.room?.anchor ||
+            roomInfo.room?.host;
 
         if (!owner) {
+            console.log(
+                "S-LIVE: broadcaster owner not found"
+            );
             return null;
         }
 
-        return (
-            getFirstUrl(owner.avatar_thumb) ||
-            getFirstUrl(owner.avatarThumb) ||
-            getFirstUrl(owner.profilePictureUrl) ||
-            getFirstUrl(owner.profile_picture_url) ||
-            getFirstUrl(owner.avatar)
+        const possiblePictures = [
+            owner.avatar_thumb,
+            owner.avatar_larger,
+            owner.avatar_medium,
+            owner.avatarThumb,
+            owner.avatarLarger,
+            owner.avatarMedium,
+            owner.profilePictureUrl,
+            owner.profile_picture_url,
+            owner.avatar,
+            owner.profilePicture,
+            owner.profile_picture
+        ];
+
+        for (const value of possiblePictures) {
+            const url = getFirstUrl(value);
+
+            if (url) {
+                console.log(
+                    "S-LIVE: broadcaster profile found:",
+                    url
+                );
+
+                return url;
+            }
+        }
+
+        console.log(
+            "S-LIVE: broadcaster avatar fields found, but no URL"
         );
+
+        console.log(
+            "S-LIVE owner keys:",
+            Object.keys(owner)
+        );
+
+        return null;
 
     } catch (error) {
 
