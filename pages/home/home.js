@@ -2,25 +2,14 @@
 
 /* =========================================================
    S-LIVE HOME
-   الأحداث الحالية:
    - 🎁 Rose
    - ✨ Follow
 ========================================================= */
 
-
-/* =========================================================
-   Gift
-========================================================= */
-
 let giftEventSource = null;
-let giftHideTimer = null;
-
-
-/* =========================================================
-   Follow
-========================================================= */
-
 let followEventSource = null;
+
+let giftHideTimer = null;
 let followHideTimer = null;
 
 
@@ -34,99 +23,120 @@ function getElement(id) {
 
 
 /* =========================================================
-   تحميل تأثير الورود
+   تحميل ملف CSS
 ========================================================= */
 
-function loadRoseEffect() {
+function loadCSS(id, href) {
 
-    if (!document.getElementById("rose-effect-css")) {
+    return new Promise((resolve) => {
 
-        const link = document.createElement("link");
+        if (document.getElementById(id)) {
+            resolve();
+            return;
+        }
 
-        link.id = "rose-effect-css";
+        const link =
+            document.createElement("link");
+
+        link.id = id;
         link.rel = "stylesheet";
+        link.href = href;
 
-        link.href =
-            "/effects/gifts/rose/rose.css";
+        link.onload = () => {
+            resolve();
+        };
+
+        link.onerror = () => {
+
+            console.error(
+                "S-LIVE: CSS failed to load:",
+                href
+            );
+
+            resolve();
+        };
 
         document.head.appendChild(link);
-    }
-
-    if (window.RoseEffect) {
-        return;
-    }
-
-    const script = document.createElement("script");
-
-    script.src =
-        "/effects/gifts/rose/rose.js";
-
-    script.onload = () => {
-
-        console.log(
-            "S-LIVE: Rose Effect loaded"
-        );
-
-    };
-
-    script.onerror = () => {
-
-        console.error(
-            "S-LIVE: Failed to load Rose Effect"
-        );
-
-    };
-
-    document.body.appendChild(script);
+    });
 }
 
 
 /* =========================================================
-   تحميل تأثير المتابعة
+   تحميل JavaScript
 ========================================================= */
 
-function loadFollowEffect() {
+function loadScript(id, src) {
 
-    if (!document.getElementById("follow-effect-css")) {
+    return new Promise((resolve) => {
 
-        const link = document.createElement("link");
+        if (window[id]) {
+            resolve();
+            return;
+        }
 
-        link.id = "follow-effect-css";
+        const script =
+            document.createElement("script");
 
-        link.rel = "stylesheet";
+        script.src = src;
 
-        link.href =
-            "/effects/follow/follow.css";
+        script.onload = () => {
 
-        document.head.appendChild(link);
-    }
+            console.log(
+                "S-LIVE: Effect loaded:",
+                id
+            );
 
-    if (window.FollowEffect) {
-        return;
-    }
+            resolve();
+        };
 
-    const script = document.createElement("script");
+        script.onerror = () => {
 
-    script.src =
-        "/effects/follow/follow.js";
+            console.error(
+                "S-LIVE: Effect failed:",
+                src
+            );
 
-    script.onload = () => {
+            resolve();
+        };
 
-        console.log(
-            "S-LIVE: Follow Effect loaded"
-        );
+        document.body.appendChild(script);
+    });
+}
 
-    };
 
-    script.onerror = () => {
+/* =========================================================
+   تحميل تأثير Rose
+========================================================= */
 
-        console.error(
-            "S-LIVE: Failed to load Follow Effect"
-        );
+async function loadRoseEffect() {
 
-    };
+    await loadCSS(
+        "rose-effect-css",
+        "/effects/gifts/rose/rose.css"
+    );
 
-    document.body.appendChild(script);
+    await loadScript(
+        "RoseEffect",
+        "/effects/gifts/rose/rose.js"
+    );
+}
+
+
+/* =========================================================
+   تحميل تأثير Follow
+========================================================= */
+
+async function loadFollowEffect() {
+
+    await loadCSS(
+        "follow-effect-css",
+        "/effects/follow/follow.css"
+    );
+
+    await loadScript(
+        "FollowEffect",
+        "/effects/follow/follow.js"
+    );
 }
 
 
@@ -154,10 +164,6 @@ function showGift(gift) {
         !name ||
         !message
     ) {
-        console.warn(
-            "S-LIVE: Gift UI elements not found"
-        );
-
         return;
     }
 
@@ -180,13 +186,9 @@ function showGift(gift) {
             : 1;
 
 
-    /* الاسم */
-
     name.textContent =
         `@${String(username).replace(/^@/, "")}`;
 
-
-    /* الصورة */
 
     if (profilePicture) {
 
@@ -195,25 +197,18 @@ function showGift(gift) {
                 ? profilePicture
                 : `/api/connection/proxy-image?url=${encodeURIComponent(profilePicture)}`;
 
-        image.style.display =
-            "block";
+        image.style.display = "block";
 
     } else {
 
         image.removeAttribute("src");
-
-        image.style.display =
-            "none";
+        image.style.display = "none";
     }
 
-
-    /* الرسالة */
 
     message.textContent =
         `🎁 أرسل ${giftName} ×${quantity}`;
 
-
-    /* Animation */
 
     clearTimeout(giftHideTimer);
 
@@ -223,8 +218,6 @@ function showGift(gift) {
 
     center.classList.add("show");
 
-
-    /* مدة العرض */
 
     giftHideTimer =
         setTimeout(() => {
@@ -236,7 +229,7 @@ function showGift(gift) {
 
 
 /* =========================================================
-   تشغيل تأثير الوردة
+   تشغيل Rose
 ========================================================= */
 
 function playRoseGift() {
@@ -273,16 +266,6 @@ function handleGift(gift) {
             .toLowerCase();
 
 
-    console.log(
-        "S-LIVE: Processing gift:",
-        gift
-    );
-
-
-    /*
-     * حاليًا نربط Rose فقط.
-     */
-
     if (
         giftName === "rose" ||
         giftName === "roses" ||
@@ -293,24 +276,19 @@ function handleGift(gift) {
         showGift(gift);
 
         playRoseGift();
-
     }
 }
 
 
 /* =========================================================
-   الاتصال بأحداث الهدايا
+   SSE - الهدايا
 ========================================================= */
 
 function connectGiftEvents() {
 
     if (giftEventSource) {
-
         giftEventSource.close();
-
-        giftEventSource = null;
     }
-
 
     giftEventSource =
         new EventSource(
@@ -337,12 +315,10 @@ function connectGiftEvents() {
             } catch (error) {
 
                 console.error(
-                    "S-LIVE gift parse error:",
+                    "S-LIVE gift error:",
                     error
                 );
-
             }
-
         }
     );
 
@@ -352,7 +328,6 @@ function connectGiftEvents() {
         console.warn(
             "S-LIVE: Gift SSE connection lost"
         );
-
     };
 }
 
@@ -380,7 +355,7 @@ function showFollow(follow) {
     ) {
 
         console.warn(
-            "S-LIVE: Follow UI elements not found"
+            "S-LIVE: Follow UI not found"
         );
 
         return;
@@ -398,13 +373,9 @@ function showFollow(follow) {
         "";
 
 
-    /* الاسم */
-
     name.textContent =
         `@${String(username).replace(/^@/, "")}`;
 
-
-    /* الصورة */
 
     if (profilePicture) {
 
@@ -425,8 +396,6 @@ function showFollow(follow) {
     }
 
 
-    /* إعادة تشغيل Animation */
-
     clearTimeout(followHideTimer);
 
     center.classList.remove("show");
@@ -436,24 +405,26 @@ function showFollow(follow) {
     center.classList.add("show");
 
 
-    /* تشغيل النجوم */
+    /* تشغيل الخلفية التفاعلية */
 
     if (
         window.FollowEffect &&
         typeof window.FollowEffect.play === "function"
     ) {
 
+        console.log(
+            "S-LIVE: Starting Follow Effect"
+        );
+
         window.FollowEffect.play();
 
     } else {
 
-        console.warn(
+        console.error(
             "S-LIVE: FollowEffect is not ready"
         );
     }
 
-
-    /* 5 ثوانٍ */
 
     followHideTimer =
         setTimeout(() => {
@@ -465,22 +436,15 @@ function showFollow(follow) {
 
 
 /* =========================================================
-   الاتصال بأحداث المتابعة
+   SSE - المتابعة
 ========================================================= */
 
 function connectFollowEvents() {
 
     if (followEventSource) {
-
         followEventSource.close();
-
-        followEventSource = null;
     }
 
-
-    /*
-     * نستخدم SSE نفسه.
-     */
 
     followEventSource =
         new EventSource(
@@ -497,24 +461,20 @@ function connectFollowEvents() {
                 const follow =
                     JSON.parse(event.data);
 
-
                 console.log(
                     "S-LIVE FOLLOW:",
                     follow
                 );
-
 
                 showFollow(follow);
 
             } catch (error) {
 
                 console.error(
-                    "S-LIVE follow parse error:",
+                    "S-LIVE follow error:",
                     error
                 );
-
             }
-
         }
     );
 
@@ -524,7 +484,6 @@ function connectFollowEvents() {
         console.warn(
             "S-LIVE: Follow SSE connection lost"
         );
-
     };
 }
 
@@ -533,7 +492,7 @@ function connectFollowEvents() {
    تشغيل Home
 ========================================================= */
 
-function initHome() {
+async function initHome() {
 
     console.log(
         "S-LIVE HOME JS loaded"
@@ -541,31 +500,33 @@ function initHome() {
 
 
     /*
-     * تحميل المؤثرات
+     * تحميل المؤثرات أولًا
      */
 
-    loadRoseEffect();
+    await Promise.all([
+        loadRoseEffect(),
+        loadFollowEffect()
+    ]);
 
-    loadFollowEffect();
+
+    console.log(
+        "S-LIVE: All effects ready"
+    );
 
 
     /*
-     * ننتظر قليلًا حتى يتم تحميل
-     * ملفات المؤثرات.
+     * بعد التأكد من تحميل المؤثرات
+     * نبدأ استقبال الأحداث.
      */
 
-    setTimeout(() => {
+    connectGiftEvents();
 
-        connectGiftEvents();
-
-        connectFollowEvents();
-
-    }, 300);
+    connectFollowEvents();
 }
 
 
 /* =========================================================
-   تشغيل الصفحة
+   Start
 ========================================================= */
 
 initHome(); 
