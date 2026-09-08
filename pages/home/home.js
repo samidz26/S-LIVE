@@ -1,5 +1,6 @@
 "use strict";
-
+let followEventSource = null;
+let followHideTimer = null;
 let giftEventSource = null;
 let giftHideTimer = null;
 
