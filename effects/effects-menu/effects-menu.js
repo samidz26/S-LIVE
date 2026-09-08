@@ -1,17 +1,18 @@
 "use strict";
 
-const EffectsTestMenu = (() => {
+window.EffectsTestMenu = (() => {
 
     let menu = null;
 
     function create() {
 
-        // منع إنشاء القائمة أكثر من مرة
         if (menu) {
             return;
         }
 
-        // القائمة تظهر في Settings فقط
+        /*
+         * القائمة تظهر في Settings فقط
+         */
         const settingsPage =
             document.querySelector(".settings-page");
 
@@ -19,15 +20,18 @@ const EffectsTestMenu = (() => {
             console.warn(
                 "S-LIVE: .settings-page not found"
             );
+
             return;
         }
 
-        menu = document.createElement("div");
+        menu =
+            document.createElement("div");
 
         menu.className =
             "effects-test-menu";
 
         menu.innerHTML = `
+
             <button
                 class="effects-test-button"
                 type="button"
@@ -36,16 +40,31 @@ const EffectsTestMenu = (() => {
                 ⚡
             </button>
 
+
             <div class="effects-test-dropdown">
+
+                <!-- الهدايا -->
 
                 <button
                     class="effects-test-item"
                     type="button"
                     data-action="gifts"
                 >
-                    <span class="effects-test-item-icon">🎁</span>
-                    <span>هدايا</span>
+
+                    <span
+                        class="effects-test-item-icon"
+                    >
+                        🎁
+                    </span>
+
+                    <span>
+                        هدايا
+                    </span>
+
                 </button>
+
+
+                <!-- قائمة الهدايا الفرعية -->
 
                 <div class="effects-test-submenu">
 
@@ -58,6 +77,7 @@ const EffectsTestMenu = (() => {
                         <span>وردة</span>
                     </button>
 
+
                     <button
                         class="effects-test-gift"
                         type="button"
@@ -66,6 +86,7 @@ const EffectsTestMenu = (() => {
                         <span>❤️</span>
                         <span>قلب</span>
                     </button>
+
 
                     <button
                         class="effects-test-gift"
@@ -78,31 +99,67 @@ const EffectsTestMenu = (() => {
 
                 </div>
 
+
+                <!-- متابعة -->
+
                 <button
                     class="effects-test-item"
                     type="button"
                     data-action="follow"
                 >
-                    <span class="effects-test-item-icon">➕</span>
-                    <span>متابعة</span>
+
+                    <span
+                        class="effects-test-item-icon"
+                    >
+                        ➕
+                    </span>
+
+                    <span>
+                        متابعة
+                    </span>
+
                 </button>
+
+
+                <!-- اشتراك -->
 
                 <button
                     class="effects-test-item"
                     type="button"
                     data-action="subscribe"
                 >
-                    <span class="effects-test-item-icon">❤️</span>
-                    <span>اشتراك</span>
+
+                    <span
+                        class="effects-test-item-icon"
+                    >
+                        ❤️
+                    </span>
+
+                    <span>
+                        اشتراك
+                    </span>
+
                 </button>
+
+
+                <!-- تكبيس -->
 
                 <button
                     class="effects-test-item"
                     type="button"
                     data-action="like"
                 >
-                    <span class="effects-test-item-icon">⚡</span>
-                    <span>تكبيس</span>
+
+                    <span
+                        class="effects-test-item-icon"
+                    >
+                        ⚡
+                    </span>
+
+                    <span>
+                        تكبيس
+                    </span>
+
                 </button>
 
             </div>
@@ -137,7 +194,10 @@ const EffectsTestMenu = (() => {
             );
 
 
-        // فتح وإغلاق القائمة الرئيسية
+        /*
+         * فتح القائمة الرئيسية
+         */
+
         button.addEventListener(
             "click",
             event => {
@@ -155,7 +215,10 @@ const EffectsTestMenu = (() => {
         );
 
 
-        // فتح قائمة الهدايا
+        /*
+         * فتح قائمة الهدايا
+         */
+
         giftsButton.addEventListener(
             "click",
             event => {
@@ -169,7 +232,10 @@ const EffectsTestMenu = (() => {
         );
 
 
-        // الهدايا
+        /*
+         * اختيار الهدية
+         */
+
         const giftButtons =
             menu.querySelectorAll(
                 ".effects-test-gift"
@@ -194,7 +260,10 @@ const EffectsTestMenu = (() => {
         );
 
 
-        // إغلاق القائمة عند الضغط خارجها
+        /*
+         * إغلاق القائمة عند الضغط خارجها
+         */
+
         document.addEventListener(
             "click",
             () => {
@@ -210,7 +279,10 @@ const EffectsTestMenu = (() => {
         );
 
 
-        // منع إغلاق القائمة عند الضغط داخلها
+        /*
+         * منع الإغلاق عند الضغط داخل القائمة
+         */
+
         dropdown.addEventListener(
             "click",
             event => {
@@ -236,10 +308,6 @@ const EffectsTestMenu = (() => {
                 "S-LIVE: Rose selected"
             );
 
-            /*
-             * سيتم ربط RoseEffect.play()
-             * في الخطوة التالية.
-             */
         }
 
 
@@ -248,6 +316,7 @@ const EffectsTestMenu = (() => {
             console.log(
                 "S-LIVE: Heart selected"
             );
+
         }
 
 
@@ -256,6 +325,7 @@ const EffectsTestMenu = (() => {
             console.log(
                 "S-LIVE: Donut selected"
             );
+
         }
     }
 
@@ -264,4 +334,4 @@ const EffectsTestMenu = (() => {
         create
     };
 
-})();
+})(); 
