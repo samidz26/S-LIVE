@@ -1,98 +1,70 @@
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  }
-
-html,
-body {
-width: 100%;
-height: 100%;
-overflow: hidden;
-}
-
-body {
-font-family:
-Arial,
-"Segoe UI",
-sans-serif;
-background: #050505;
-}
-
 /* =========================================
-HOME
+S-LIVE HOME
 ========================================= */
 
 .home-page {
 position: relative;
-
 width: 100%;
 height: 100%;
+
+display: flex;
+align-items: center;
+justify-content: center;
+
+padding: 20px;
+box-sizing: border-box;
 
 overflow: hidden;
 
 background:
     radial-gradient(
-        circle at 50% 50%,
-        rgba(212, 175, 55, 0.12),
+        circle at 50% 45%,
+        rgba(255, 174, 0, 0.12),
+        transparent 32%
+    ),
+    radial-gradient(
+        circle at 15% 80%,
+        rgba(255, 130, 0, 0.08),
         transparent 28%
     ),
     radial-gradient(
-        circle at 50% 100%,
-        rgba(255, 193, 7, 0.06),
-        transparent 40%
+        circle at 85% 20%,
+        rgba(255, 190, 60, 0.07),
+        transparent 28%
     ),
-    linear-gradient(
-        145deg,
-        #050505 0%,
-        #0b0b0b 45%,
-        #050505 100%
-    );
-
+    #050505;
 }
 
+
 /* =========================================
-BACKGROUND RINGS
+LUXURY ANIMATED BACKGROUND
 ========================================= */
 
 .home-page::before {
-
 content: "";
 
 position: absolute;
 
-width: 520px;
-height: 520px;
+inset: -35%;
 
-left: 50%;
-top: 50%;
-
-transform:
-    translate(-50%, -50%)
-    rotate(0deg);
-
-border-radius: 50%;
-
-border:
-    1px solid
-    rgba(212, 175, 55, 0.08);
-
-box-shadow:
-    0 0 70px
-    rgba(212, 175, 55, 0.05),
-
-    inset 0 0 70px
-    rgba(212, 175, 55, 0.04);
-
-animation:
-    backgroundRing 18s linear infinite;
+z-index: 0;
 
 pointer-events: none;
 
+background:
+    repeating-radial-gradient(
+        ellipse at center,
+        transparent 0 70px,
+        rgba(255, 170, 30, 0.035) 71px 72px,
+        transparent 73px 120px
+    );
+
+animation:
+    backgroundRotate 28s linear infinite;
 }
 
-.home-page::after {
 
+.home-page::after {
 content: "";
 
 position: absolute;
@@ -101,282 +73,187 @@ width: 260px;
 height: 260px;
 
 left: 50%;
-top: 50%;
+top: 47%;
 
-transform:
-    translate(-50%, -50%);
+transform: translate(-50%, -50%);
 
-border-radius: 50%;
-
-background:
-    radial-gradient(
-        circle,
-        rgba(212, 175, 55, 0.08),
-        transparent 70%
-    );
-
-filter: blur(20px);
+z-index: 0;
 
 pointer-events: none;
 
-}
-
-/* =========================================
-OWNER ACCOUNT
-========================================= */
-
-.live-account {
-
-position: absolute;
-
-top: 16px;
-left: 16px;
-
-z-index: 2000;
-
-}
-
-.live-account-button {
-
-display: flex;
-
-align-items: center;
-gap: 7px;
-
-border: none;
-background: transparent;
-
-cursor: pointer;
-
-color: #fff;
-
-padding: 2px;
-
-direction: ltr;
-
-}
-
-.live-account-avatar {
-
-width: 34px;
-height: 34px;
-
-border-radius: 50%;
-
-object-fit: cover;
-
-border:
-    1px solid
-    rgba(212, 175, 55, 0.65);
-
-box-shadow:
-    0 0 12px
-    rgba(212, 175, 55, 0.25);
-
-}
-
-.live-account-name {
-
-font-size: 12px;
-
-color: rgba(255,255,255,0.85);
-
-white-space: nowrap;
-
-}
-
-/* =========================================
-ACCOUNT DROPDOWN
-========================================= */
-
-.live-dropdown {
-
-position: absolute;
-
-top: 46px;
-left: 0;
-
-width: 145px;
-
-padding: 8px;
-
-border-radius: 12px;
-
-background:
-    rgba(10,10,10,0.96);
-
-border:
-    1px solid
-    rgba(212,175,55,0.25);
-
-box-shadow:
-    0 10px 35px
-    rgba(0,0,0,0.55);
-
-opacity: 0;
-
-visibility: hidden;
-
-transform:
-    translateY(-6px);
-
-transition:
-    0.2s ease;
-
-}
-
-.live-account.open
-.live-dropdown {
-
-opacity: 1;
-
-visibility: visible;
-
-transform:
-    translateY(0);
-
-}
-
-.disconnect-button {
-
-width: 100%;
-
-padding: 8px 10px;
-
-border: none;
-
-border-radius: 8px;
-
-background:
-    rgba(180,30,30,0.15);
-
-color: #ff8a8a;
-
-cursor: pointer;
-
-font-size: 11px;
-
-}
-
-/* =========================================
-MEMBER CARD
-========================================= */
-
-.live-event-card {
-
-position: absolute;
-
-right: 12px;
-bottom: 14px;
-
-z-index: 1500;
-
-display: flex;
-
-align-items: center;
-
-gap: 7px;
-
-direction: rtl;
-
-opacity: 0;
-
-visibility: hidden;
-
-transform:
-    translateY(12px)
-    scale(0.94);
-
-transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
-
-}
-
-.live-event-card.has-member {
-
-opacity: 1;
-
-visibility: visible;
-
-transform:
-    translateY(0)
-    scale(1);
-
-}
-
-.live-event-card.new-member {
-
-animation:
-    memberEnter
-    0.6s ease;
-
-}
-
-.profile-wrapper {
-
-position: relative;
-
-width: 36px;
-height: 36px;
-
-}
-
-.profile-glow {
-
-position: absolute;
-
-inset: -4px;
-
 border-radius: 50%;
 
 background:
     radial-gradient(
         circle,
-        rgba(212,175,55,0.35),
+        rgba(255, 190, 60, 0.14),
+        rgba(255, 140, 0, 0.05) 35%,
         transparent 70%
     );
 
-filter: blur(4px);
+filter: blur(18px);
 
+animation:
+    centralGlow 4s ease-in-out infinite;
 }
 
-.member-profile {
 
+/* =========================================
+BACKGROUND LIGHT
+========================================= */
+
+.home-page {
+isolation: isolate;
+}
+
+.home-page .background-light {
+position: absolute;
+}
+
+
+/* =========================================
+LIVE ACCOUNT
+أعلى يسار مساحة العرض
+========================================= */
+
+.live-account {
+position: absolute;
+
+top: 7px;
+left: 7px;
+
+z-index: 1000;
+
+direction: ltr;
+}
+
+
+/* =========================================
+ACCOUNT BUTTON
+بدون إطار خارجي
+========================================= */
+
+.live-account-button {
+height: 34px;
+min-width: 108px;
+
+padding: 2px 4px;
+
+display: flex;
+align-items: center;
+
+gap: 5px;
+
+border: 0;
+
+border-radius: 20px;
+
+background: transparent;
+
+box-shadow: none;
+
+color: #fff;
+
+cursor: pointer;
+
+font-family: inherit;
+
+transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.live-account-button:hover {
+opacity: 0.9;
+
+transform: scale(1.02);
+}
+
+.live-account-button:active {
+transform: scale(0.96);
+}
+
+
+/* =========================================
+LIVE AVATAR
+========================================= */
+
+.live-avatar-wrapper {
 position: relative;
 
-width: 36px;
-height: 36px;
+width: 25px;
+height: 25px;
+
+flex: 0 0 25px;
+}
+
+.live-profile-image {
+width: 25px;
+height: 25px;
+
+display: block;
 
 border-radius: 50%;
 
 object-fit: cover;
 
-border:
-    1px solid
-    rgba(212,175,55,0.65);
+background: #181818;
 
-display: block;
+border: 0;
 
-opacity: 1;
-
+box-shadow: none;
 }
 
-.member-info {
+
+/* =========================================
+GREEN ACTIVE DOT
+========================================= */
+
+.live-status-dot {
+position: absolute;
+
+right: -1px;
+bottom: -1px;
+
+width: 7px;
+height: 7px;
+
+border-radius: 50%;
+
+background: #20e070;
+
+border: 1px solid #080808;
+
+box-sizing: border-box;
+
+box-shadow:
+    0 0 6px rgba(32, 224, 112, 0.95);
+
+animation:
+    liveStatusPulse 1.7s infinite;
+}
+
+
+/* =========================================
+ACCOUNT INFO
+========================================= */
+
+.live-account-info {
+min-width: 0;
 
 display: flex;
 
 flex-direction: column;
 
-align-items: flex-end;
+align-items: flex-start;
 
-line-height: 1.1;
+justify-content: center;
 
+line-height: 1;
 }
 
-.member-name {
-
-max-width: 100px;
+.live-username {
+max-width: 64px;
 
 overflow: hidden;
 
@@ -386,23 +263,393 @@ white-space: nowrap;
 
 color: #fff;
 
-font-size: 11px;
+font-size: 9px;
 
+font-weight: 800;
+
+direction: ltr;
+
+text-shadow:
+    0 1px 5px rgba(0, 0, 0, 0.9);
 }
 
-.member-username {
+.live-status-text {
+margin-top: 2px;
 
-color:
-    rgba(255,255,255,0.45);
+color: #20e070;
+
+font-size: 5.5px;
+
+font-weight: 900;
+
+letter-spacing: 0.5px;
+
+text-shadow:
+    0 0 5px rgba(32, 224, 112, 0.7);
+}
+
+.live-arrow {
+margin-left: auto;
+
+color: rgba(255, 255, 255, 0.6);
+
+font-size: 10px;
+
+transition:
+    transform 0.2s ease;
+}
+
+.live-account.open .live-arrow {
+transform: rotate(180deg);
+}
+
+
+/* =========================================
+DROPDOWN
+========================================= */
+
+.live-dropdown {
+position: absolute;
+
+top: 39px;
+left: 0;
+
+width: 150px;
+
+padding: 7px;
+
+box-sizing: border-box;
+
+border-radius: 12px;
+
+background:
+    linear-gradient(
+        145deg,
+        rgba(25, 25, 25, 0.98),
+        rgba(8, 8, 8, 0.99)
+    );
+
+border: 1px solid rgba(255, 179, 71, 0.22);
+
+box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.6),
+    0 0 15px rgba(255, 165, 0, 0.08);
+
+opacity: 0;
+
+visibility: hidden;
+
+transform:
+    translateY(-5px)
+    scale(0.97);
+
+transform-origin: top left;
+
+transition:
+    opacity 0.18s ease,
+    visibility 0.18s ease,
+    transform 0.18s ease;
+}
+
+.live-account.open .live-dropdown {
+opacity: 1;
+
+visibility: visible;
+
+transform:
+    translateY(0)
+    scale(1);
+}
+
+
+/* =========================================
+DROPDOWN STATUS
+========================================= */
+
+.dropdown-account {
+display: flex;
+
+align-items: center;
+
+gap: 7px;
+
+padding: 6px 7px 8px;
+
+color: #aaa;
+
+font-size: 10px;
+}
+
+.dropdown-live-dot {
+width: 6px;
+height: 6px;
+
+border-radius: 50%;
+
+background: #20e070;
+
+box-shadow:
+    0 0 6px rgba(32, 224, 112, 0.8);
+}
+
+
+/* =========================================
+DISCONNECT BUTTON
+========================================= */
+
+.disconnect-button {
+width: 100%;
+
+min-height: 33px;
+
+display: flex;
+
+align-items: center;
+
+justify-content: flex-start;
+
+gap: 8px;
+
+padding: 7px 9px;
+
+border: 0;
+
+border-radius: 8px;
+
+background:
+    rgba(220, 45, 45, 0.12);
+
+color: #ff6969;
+
+font-family: inherit;
+
+font-size: 11px;
+
+font-weight: 700;
+
+cursor: pointer;
+}
+
+.disconnect-button:hover {
+background:
+    rgba(220, 45, 45, 0.22);
+}
+
+.disconnect-icon {
+font-size: 14px;
+
+line-height: 1;
+}
+
+
+/* =========================================
+LAST MEMBER
+آخر شخص دخل
+========================================= */
+
+.live-event-card {
+position: absolute;
+
+right: 9px;
+bottom: 8px;
+
+z-index: 900;
+
+width: 82px;
+
+padding: 0;
+
+box-sizing: border-box;
+
+display: flex;
+
+flex-direction: column;
+
+align-items: center;
+
+text-align: center;
+
+background: transparent;
+
+border: 0;
+
+box-shadow: none;
+
+border-radius: 0;
+
+opacity: 0;
+
+pointer-events: none;
+
+transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+
+.live-event-card.has-member {
+opacity: 1;
+}
+
+
+/* =========================================
+JOIN MESSAGE
+========================================= */
+
+.event-label {
+order: 1;
+
+display: flex;
+
+align-items: center;
+
+justify-content: center;
+
+margin: 0 0 3px;
+
+color: #ffd66b;
+
+font-size: 8px;
+
+font-weight: 900;
+
+white-space: nowrap;
+
+letter-spacing: 0.1px;
+
+text-shadow:
+    0 0 5px rgba(255, 190, 60, 0.85),
+    0 2px 7px rgba(0, 0, 0, 0.95);
+}
+
+.event-dot {
+display: none;
+}
+
+
+/* =========================================
+PROFILE
+========================================= */
+
+.profile-wrapper {
+position: relative;
+
+order: 2;
+
+width: 39px;
+height: 39px;
+
+margin: 0;
+
+display: flex;
+
+align-items: center;
+
+justify-content: center;
+}
+
+.profile-glow {
+display: none;
+}
+
+
+/* =========================================
+NEON PROFILE
+========================================= */
+
+.member-profile {
+position: relative;
+
+width: 34px;
+height: 34px;
+
+border-radius: 50%;
+
+object-fit: cover;
+
+background: #151515;
+
+border: 2px solid #ffd166;
+
+box-sizing: border-box;
+
+opacity: 1;
+
+box-shadow:
+    0 0 0 1px rgba(255, 214, 102, 0.35),
+    0 0 6px rgba(255, 193, 55, 0.95),
+    0 0 13px rgba(255, 145, 0, 0.6);
+
+transition:
+    transform 0.35s ease;
+}
+
+
+/* =========================================
+USER INFO
+========================================= */
+
+.member-info {
+order: 3;
+
+width: 100%;
+
+min-height: 0;
+
+padding: 0;
+
+margin-top: 3px;
+
+display: flex;
+
+flex-direction: column;
+
+align-items: center;
+
+justify-content: center;
+}
+
+.member-name {
+color: #fff;
 
 font-size: 9px;
 
+font-weight: 800;
+
+max-width: 76px;
+
+overflow: hidden;
+
+text-overflow: ellipsis;
+
+white-space: nowrap;
+
+text-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.95);
 }
 
+.member-username {
+display: none;
+}
+
+
 /* =========================================
-CENTER EVENTS
-NO FRAME
+NEW MEMBER ANIMATION
 ========================================= */
+
+.live-event-card.new-member {
+animation:
+    memberEnter 0.45s ease;
+}
+
+.live-event-card.new-member .member-profile {
+transform: scale(1.08);
+}
+
+
+/* =========================================================
+   LIVE EVENTS CENTER
+   مركز أحداث اللايف
+========================================================= */
 
 .live-events-center {
 
@@ -413,13 +660,17 @@ top: 50%;
 
 transform:
     translate(-50%, -50%)
-    scale(0.82);
+    scale(0.85);
 
-z-index: 3000;
+z-index: 1100;
 
-width: 220px;
+width: 180px;
 
-min-height: 160px;
+min-height: 150px;
+
+padding: 14px 12px 12px;
+
+box-sizing: border-box;
 
 display: flex;
 
@@ -433,18 +684,8 @@ text-align: center;
 
 direction: rtl;
 
-/*
- * مهم:
- * لا يوجد background
- * لا يوجد border
- * لا يوجد box-shadow
- */
 
-background: transparent;
-
-border: none;
-
-box-shadow: none;
+/* مخفي افتراضياً */
 
 opacity: 0;
 
@@ -452,17 +693,45 @@ visibility: hidden;
 
 pointer-events: none;
 
+
+/* شكل فاخر */
+
+background:
+    linear-gradient(
+        145deg,
+        rgba(15, 15, 15, 0.90),
+        rgba(5, 5, 5, 0.78)
+    );
+
+border: 1px solid rgba(255, 204, 92, 0.45);
+
+border-radius: 18px;
+
+box-shadow:
+    0 0 0 1px rgba(255, 214, 102, 0.08),
+    0 0 18px rgba(255, 183, 45, 0.20),
+    0 12px 35px rgba(0, 0, 0, 0.65);
+
+backdrop-filter: blur(7px);
+
+-webkit-backdrop-filter: blur(7px);
+
 transition:
     opacity 0.25s ease,
-    transform 0.35s
-    cubic-bezier(
-        0.16,
-        1,
-        0.3,
+    visibility 0.25s ease,
+    transform 0.35s cubic-bezier(
+        0.2,
+        0.8,
+        0.2,
         1
     );
 
 }
+
+
+/* =========================================
+EVENT VISIBLE
+========================================= */
 
 .live-events-center.show {
 
@@ -476,111 +745,118 @@ transform:
 
 }
 
+
 /* =========================================
 EVENT TYPE
 ========================================= */
 
 .live-event-type {
 
-min-height: 20px;
+min-height: 17px;
 
 margin-bottom: 6px;
 
-font-size: 13px;
+color: #ffd66b;
 
-font-weight: 700;
+font-size: 12px;
 
-color: #e8c75a;
+font-weight: 900;
+
+line-height: 1.2;
+
+white-space: nowrap;
 
 text-shadow:
-    0 0 8px
-    rgba(212,175,55,0.45);
+    0 0 5px rgba(255, 214, 102, 0.95),
+    0 0 12px rgba(255, 170, 30, 0.45);
 
 }
 
+
 /* =========================================
-AVATAR
+EVENT AVATAR WRAPPER
 ========================================= */
 
 .live-event-avatar-wrapper {
 
 position: relative;
 
-width: 70px;
-height: 70px;
+width: 54px;
+height: 54px;
 
-margin-bottom: 7px;
+display: flex;
+
+align-items: center;
+
+justify-content: center;
+
+margin-bottom: 6px;
 
 }
+
+
+/* =========================================
+AVATAR GLOW
+========================================= */
 
 .live-event-avatar-glow {
 
 position: absolute;
 
-inset: -12px;
+inset: 2px;
 
 border-radius: 50%;
 
 background:
     radial-gradient(
         circle,
-        rgba(212,175,55,0.42),
+        rgba(255, 201, 80, 0.32),
         transparent 68%
     );
 
-filter: blur(8px);
+filter: blur(6px);
 
 animation:
-    eventAvatarGlow
-    2s ease-in-out infinite;
+    eventAvatarGlow 1.8s ease-in-out infinite;
 
 }
+
+
+/* =========================================
+EVENT AVATAR
+========================================= */
 
 .live-event-avatar {
 
 position: relative;
 
-width: 70px;
-height: 70px;
+width: 46px;
+height: 46px;
 
 border-radius: 50%;
 
 object-fit: cover;
 
-border:
-    1px solid
-    rgba(255,215,100,0.75);
+background: #151515;
+
+border: 2px solid #ffd166;
+
+box-sizing: border-box;
 
 box-shadow:
-    0 0 15px
-    rgba(212,175,55,0.3);
-
-background:
-    rgba(0,0,0,0.35);
+    0 0 5px rgba(255, 214, 102, 0.9),
+    0 0 14px rgba(255, 158, 35, 0.55);
 
 }
 
-.live-event-avatar-wrapper.avatar-event {
-
-animation:
-    eventAvatarEnter
-    0.55s
-    cubic-bezier(
-        0.16,
-        1,
-        0.3,
-        1
-    );
-
-}
 
 /* =========================================
-USER
+EVENT USER
 ========================================= */
 
 .live-event-user {
 
-max-width: 170px;
+max-width: 145px;
 
 overflow: hidden;
 
@@ -590,15 +866,17 @@ white-space: nowrap;
 
 color: #fff;
 
-font-size: 13px;
+font-size: 12px;
 
-font-weight: 700;
+font-weight: 900;
+
+line-height: 1.25;
 
 text-shadow:
-    0 2px 10px
-    rgba(0,0,0,0.8);
+    0 2px 8px rgba(0, 0, 0, 0.95);
 
 }
+
 
 /* =========================================
 EVENT CONTENT
@@ -606,16 +884,9 @@ EVENT CONTENT
 
 .live-event-content {
 
-max-width: 190px;
+max-width: 155px;
 
-margin-top: 4px;
-
-color:
-    rgba(255,255,255,0.86);
-
-font-size: 12px;
-
-font-weight: 600;
+margin-top: 5px;
 
 overflow: hidden;
 
@@ -623,256 +894,171 @@ text-overflow: ellipsis;
 
 white-space: nowrap;
 
-text-shadow:
-    0 2px 10px
-    rgba(0,0,0,0.8);
+color: #ddd;
+
+font-size: 10px;
+
+font-weight: 700;
+
+line-height: 1.3;
 
 }
 
+
 /* =========================================
-VALUE
+EVENT VALUE
 ========================================= */
 
 .live-event-value {
 
-margin-top: 5px;
-
 min-height: 16px;
 
-color: #f4d76a;
+margin-top: 5px;
 
-font-size: 12px;
+color: #ffd166;
 
-font-weight: 800;
+font-size: 11px;
 
-text-shadow:
-    0 0 10px
-    rgba(212,175,55,0.6);
-
-}
-
-/* =========================================
-FOLLOW
-========================================= */
-
-.live-events-center.event-follow
-.live-event-type {
-
-color: #ff6688;
+font-weight: 900;
 
 text-shadow:
-    0 0 12px
-    rgba(255,80,120,0.55);
+    0 0 7px rgba(255, 190, 50, 0.85);
 
 }
 
-.live-events-center.event-follow
-.live-event-avatar {
-
-border-color:
-    rgba(255,100,140,0.75);
-
-box-shadow:
-    0 0 22px
-    rgba(255,70,120,0.35);
-
-}
 
 /* =========================================
-SUBSCRIBE
+EVENT DECORATIVE LIGHT
 ========================================= */
 
-.live-events-center.event-subscribe
-.live-event-type {
+.live-events-center::before {
 
-color: #ffe27a;
+content: "";
 
-text-shadow:
-    0 0 14px
-    rgba(255,205,60,0.65);
+position: absolute;
+
+top: -35px;
+
+left: 50%;
+
+width: 100px;
+height: 100px;
+
+transform: translateX(-50%);
+
+border-radius: 50%;
+
+background:
+    radial-gradient(
+        circle,
+        rgba(255, 196, 70, 0.16),
+        transparent 70%
+    );
+
+filter: blur(12px);
+
+z-index: -1;
+
+pointer-events: none;
 
 }
 
-.live-events-center.event-subscribe
-.live-event-avatar {
-
-border-color:
-    rgba(255,215,100,0.9);
-
-box-shadow:
-    0 0 25px
-    rgba(255,200,50,0.45);
-
-}
 
 /* =========================================
-SMALL GIFT
+EVENT ANIMATION
 ========================================= */
 
-.live-events-center.gift-small
-.live-event-type {
-
-color: #e8c75a;
-
-}
-
-/* =========================================
-MEDIUM GIFT
-========================================= */
-
-.live-events-center.gift-medium
-.live-event-type {
-
-color: #ffd75a;
-
-font-size: 14px;
-
-}
-
-.live-events-center.gift-medium
-.live-event-avatar {
-
-box-shadow:
-    0 0 28px
-    rgba(255,190,40,0.45);
-
-}
-
-.live-events-center.gift-medium-effect {
+.live-events-center.event-active {
 
 animation:
-    mediumGift
-    0.7s
-    ease;
-
+    eventCenterEnter 0.45s
+    cubic-bezier(
+        0.2,
+        0.8,
+        0.2,
+        1
+    );
 }
+
 
 /* =========================================
-LARGE GIFT
+EVENT AVATAR ANIMATION
 ========================================= */
 
-.live-events-center.gift-large
-.live-event-type {
-
-color: #ffb347;
-
-font-size: 15px;
-
-text-shadow:
-    0 0 16px
-    rgba(255,140,40,0.7);
-
-}
-
-.live-events-center.gift-large
+.live-events-center.event-active
 .live-event-avatar {
 
-width: 76px;
-height: 76px;
-
-box-shadow:
-    0 0 32px
-    rgba(255,130,30,0.55);
-
-}
-
-.live-events-center.gift-large-effect {
-
 animation:
-    largeGift
-    0.8s
-    ease;
-
+    eventAvatarEnter 0.5s
+    cubic-bezier(
+        0.2,
+        0.8,
+        0.2,
+        1
+    );
 }
+
 
 /* =========================================
-LEGENDARY GIFT
+BACKGROUND ANIMATIONS
 ========================================= */
 
-.live-events-center.gift-legendary
-.live-event-type {
+@keyframes backgroundRotate {
 
-color: #fff0a6;
+0% {
+    transform: rotate(0deg) scale(1);
+}
 
-font-size: 17px;
+50% {
+    transform: rotate(180deg) scale(1.08);
+}
 
-text-shadow:
-    0 0 8px #fff,
-    0 0 18px
-    rgba(255,200,40,0.9);
+100% {
+    transform: rotate(360deg) scale(1);
+}
 
 }
 
-.live-events-center.gift-legendary
-.live-event-avatar {
 
-width: 84px;
-height: 84px;
+@keyframes centralGlow {
 
-border-width: 2px;
+0%,
+100% {
 
-box-shadow:
-    0 0 20px
-    rgba(255,215,70,0.8),
-    0 0 45px
-    rgba(255,160,20,0.45);
+    opacity: 0.45;
 
-}
-
-.live-events-center.gift-legendary
-.live-event-user {
-
-font-size: 14px;
-
-}
-
-.live-events-center.gift-legendary-effect {
-
-animation:
-    legendaryGift
-    1s
-    ease;
-
-}
-
-/* =========================================
-ANIMATIONS
-========================================= */
-
-@keyframes backgroundRing {
-
-from {
     transform:
         translate(-50%, -50%)
-        rotate(0deg);
+        scale(0.88);
 }
 
-to {
+50% {
+
+    opacity: 1;
+
     transform:
         translate(-50%, -50%)
-        rotate(360deg);
+        scale(1.08);
 }
 
 }
+
 
 @keyframes memberEnter {
 
 0% {
-    opacity: 0;
-    transform:
-        translateY(12px)
-        scale(0.85);
-}
 
-55% {
-    opacity: 1;
+    opacity: 0;
+
     transform:
-        translateY(-2px)
-        scale(1.04);
+        translateY(10px)
+        scale(0.92);
 }
 
 100% {
+
     opacity: 1;
+
     transform:
         translateY(0)
         scale(1);
@@ -880,61 +1066,57 @@ to {
 
 }
 
-@keyframes eventAvatarEnter {
 
-0% {
-    opacity: 0;
-    transform:
-        scale(0.4)
-        rotate(-12deg);
-}
-
-65% {
-    opacity: 1;
-    transform:
-        scale(1.08)
-        rotate(2deg);
-}
-
-100% {
-    opacity: 1;
-    transform:
-        scale(1)
-        rotate(0);
-}
-
-}
-
-@keyframes eventAvatarGlow {
+@keyframes liveStatusPulse {
 
 0%,
 100% {
-    opacity: 0.55;
-    transform: scale(0.95);
+
+    opacity: 1;
+
+    box-shadow:
+        0 0 5px rgba(32, 224, 112, 0.7);
 }
 
 50% {
-    opacity: 1;
-    transform: scale(1.08);
+
+    opacity: 0.65;
+
+    box-shadow:
+        0 0 9px rgba(32, 224, 112, 1);
 }
 
 }
 
-@keyframes mediumGift {
+
+/* =========================================
+CENTER EVENT ANIMATIONS
+========================================= */
+
+@keyframes eventCenterEnter {
 
 0% {
+
+    opacity: 0;
+
     transform:
         translate(-50%, -50%)
-        scale(0.75);
+        scale(0.65);
 }
 
 55% {
+
+    opacity: 1;
+
     transform:
         translate(-50%, -50%)
-        scale(1.08);
+        scale(1.06);
 }
 
 100% {
+
+    opacity: 1;
+
     transform:
         translate(-50%, -50%)
         scale(1);
@@ -942,169 +1124,216 @@ to {
 
 }
 
-@keyframes largeGift {
+
+@keyframes eventAvatarEnter {
 
 0% {
+
+    opacity: 0;
+
     transform:
-        translate(-50%, -50%)
-        scale(0.65)
-        rotate(-3deg);
-}
-
-45% {
-    transform:
-        translate(-50%, -50%)
-        scale(1.12)
-        rotate(2deg);
-}
-
-70% {
-    transform:
-        translate(-50%, -50%)
-        scale(0.98)
-        rotate(-1deg);
-}
-
-100% {
-    transform:
-        translate(-50%, -50%)
-        scale(1)
-        rotate(0);
-}
-
-}
-
-@keyframes legendaryGift {
-
-0% {
-    transform:
-        translate(-50%, -50%)
         scale(0.45)
-        rotate(-5deg);
-    filter: brightness(1);
-}
-
-35% {
-    transform:
-        translate(-50%, -50%)
-        scale(1.18)
-        rotate(3deg);
-    filter: brightness(1.5);
+        rotate(-12deg);
 }
 
 60% {
+
+    opacity: 1;
+
     transform:
-        translate(-50%, -50%)
-        scale(0.96)
-        rotate(-2deg);
-    filter: brightness(1.15);
+        scale(1.12)
+        rotate(4deg);
 }
 
 100% {
+
+    opacity: 1;
+
     transform:
-        translate(-50%, -50%)
         scale(1)
-        rotate(0);
-    filter: brightness(1);
+        rotate(0deg);
 }
 
 }
+
+
+@keyframes eventAvatarGlow {
+
+0%,
+100% {
+
+    opacity: 0.45;
+
+    transform: scale(0.90);
+}
+
+50% {
+
+    opacity: 1;
+
+    transform: scale(1.12);
+}
+
+}
+
 
 /* =========================================
 MOBILE
 ========================================= */
 
-@media (max-width: 600px) {
-
-.live-events-center {
-
-    width: 190px;
-
-    min-height: 145px;
-}
-
-
-.live-event-avatar-wrapper,
-.live-event-avatar {
-
-    width: 62px;
-    height: 62px;
-}
-
-
-.live-events-center.gift-large
-.live-event-avatar {
-
-    width: 70px;
-    height: 70px;
-}
-
-
-.live-events-center.gift-legendary
-.live-event-avatar {
-
-    width: 76px;
-    height: 76px;
-}
-
-
-.live-event-type {
-
-    font-size: 12px;
-}
-
-
-.live-event-user {
-
-    font-size: 12px;
-}
-
-
-.live-event-content {
-
-    font-size: 11px;
-}
-
-
-.live-event-value {
-
-    font-size: 11px;
-}
-
+@media (max-width: 480px) {
 
 .live-account {
 
-    top: 10px;
-    left: 10px;
+    top: 6px;
+    left: 6px;
 }
 
 
-.live-account-avatar {
+.live-account-button {
 
-    width: 30px;
-    height: 30px;
+    height: 32px;
+
+    min-width: 103px;
 }
 
 
-.member-profile,
+.live-avatar-wrapper,
+.live-profile-image {
+
+    width: 23px;
+    height: 23px;
+}
+
+
+.live-avatar-wrapper {
+
+    flex-basis: 23px;
+}
+
+
+.live-status-dot {
+
+    width: 7px;
+    height: 7px;
+}
+
+
+.live-username {
+
+    max-width: 59px;
+
+    font-size: 8.5px;
+}
+
+
+.live-status-text {
+
+    font-size: 5px;
+}
+
+
+.live-event-card {
+
+    right: 7px;
+    bottom: 7px;
+
+    width: 76px;
+}
+
+
+.event-label {
+
+    font-size: 7.5px;
+
+    margin-bottom: 3px;
+}
+
+
 .profile-wrapper {
 
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
+}
+
+
+.member-profile {
+
+    width: 31px;
+    height: 31px;
 }
 
 
 .member-name {
 
-    max-width: 90px;
+    max-width: 70px;
 
-    font-size: 10px;
+    font-size: 8.5px;
 }
 
 
-.member-username {
+/* =========================================
+CENTER EVENTS MOBILE
+========================================= */
 
-    font-size: 8px;
+.live-events-center {
+
+    width: 170px;
+
+    min-height: 142px;
+
+    padding: 12px 10px;
+
+    border-radius: 16px;
+
+}
+
+
+.live-event-type {
+
+    font-size: 11px;
+
+    margin-bottom: 5px;
+}
+
+
+.live-event-avatar-wrapper {
+
+    width: 50px;
+    height: 50px;
+
+    margin-bottom: 5px;
+}
+
+
+.live-event-avatar {
+
+    width: 42px;
+    height: 42px;
+}
+
+
+.live-event-user {
+
+    max-width: 138px;
+
+    font-size: 11px;
+}
+
+
+.live-event-content {
+
+    max-width: 145px;
+
+    font-size: 9px;
+}
+
+
+.live-event-value {
+
+    font-size: 10px;
+
+    margin-top: 4px;
 }
 
 }
