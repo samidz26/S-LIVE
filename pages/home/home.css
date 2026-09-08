@@ -363,82 +363,88 @@ transform:
 
 
 /* =========================================
-DROPDOWN STATUS
+DROPDOWN ICON BUTTONS
+أزرار القائمة المنسدلة
 ========================================= */
 
-.dropdown-account {
-display: flex;
+.dropdown-icon-button {
+    width: 100%;
+    height: 38px;
 
-align-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-gap: 7px;
+    padding: 0;
 
-padding: 6px 7px 8px;
+    border: 0;
+    border-radius: 9px;
 
-color: #aaa;
+    background: transparent;
 
-font-size: 10px;
-}
+    color: #fff;
 
-.dropdown-live-dot {
-width: 6px;
-height: 6px;
+    font-family: inherit;
+    font-size: 19px;
 
-border-radius: 50%;
+    cursor: pointer;
 
-background: #20e070;
-
-box-shadow:
-    0 0 6px rgba(32, 224, 112, 0.8);
+    transition:
+        background 0.18s ease,
+        transform 0.18s ease,
+        filter 0.18s ease;
 }
 
 
 /* =========================================
-DISCONNECT BUTTON
+HOVER
 ========================================= */
 
-.disconnect-button {
-width: 100%;
+.dropdown-icon-button:hover {
+    background:
+        rgba(255, 190, 60, 0.10);
 
-min-height: 33px;
+    transform: scale(1.08);
 
-display: flex;
-
-align-items: center;
-
-justify-content: flex-start;
-
-gap: 8px;
-
-padding: 7px 9px;
-
-border: 0;
-
-border-radius: 8px;
-
-background:
-    rgba(220, 45, 45, 0.12);
-
-color: #ff6969;
-
-font-family: inherit;
-
-font-size: 11px;
-
-font-weight: 700;
-
-cursor: pointer;
+    filter:
+        drop-shadow(
+            0 0 5px
+            rgba(255, 190, 60, 0.45)
+        );
 }
 
-.disconnect-button:hover {
-background:
-    rgba(220, 45, 45, 0.22);
+
+/* =========================================
+ACTIVE
+========================================= */
+
+.dropdown-icon-button:active {
+    transform: scale(0.92);
 }
 
-.disconnect-icon {
-font-size: 14px;
 
-line-height: 1;
+/* =========================================
+DISCONNECT
+========================================= */
+
+.dropdown-icon-button.disconnect-button {
+    margin-top: 3px;
+
+    color: #ff6969;
+
+    background:
+        rgba(220, 45, 45, 0.08);
+}
+
+.dropdown-icon-button.disconnect-button:hover {
+    background:
+        rgba(220, 45, 45, 0.18);
+
+    filter:
+        drop-shadow(
+            0 0 5px
+            rgba(255, 70, 70, 0.45)
+        );
 }
 
 
