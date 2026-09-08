@@ -78,7 +78,6 @@ body {
     border-bottom: 1.5px solid #f59e0b;
     box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
 
-    /* مساحة الصفحات والألعاب */
     position: relative;
     overflow: hidden;
 }
@@ -96,4 +95,277 @@ body {
 
     background-size: 400% 400%;
     animation: luxuryGlow 10s ease infinite;
+}
+
+
+/* =========================================
+   S-LIVE FIXED ACCOUNT
+   الحساب الثابت
+   ========================================= */
+
+.s-live-fixed-account {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+}
+
+
+/* زر الحساب */
+
+.s-live-fixed-account .live-account {
+    position: relative;
+}
+
+.s-live-fixed-account .live-account-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 3px 6px;
+
+    border: 0;
+    outline: none;
+    background: transparent;
+
+    color: #ffffff;
+
+    cursor: pointer;
+
+    font-family: inherit;
+
+    direction: ltr;
+
+    border-radius: 10px;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.s-live-fixed-account .live-account-button:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.s-live-fixed-account .live-account-button:active {
+    transform: scale(0.96);
+}
+
+
+/* الصورة */
+
+.s-live-fixed-account .live-avatar-wrapper {
+    position: relative;
+
+    width: 28px;
+    height: 28px;
+
+    flex-shrink: 0;
+}
+
+.s-live-fixed-account .live-profile-image {
+    width: 28px;
+    height: 28px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+    background: #111827;
+
+    border: 1px solid rgba(245, 158, 11, 0.7);
+
+    display: block;
+}
+
+
+/* نقطة LIVE */
+
+.s-live-fixed-account .live-status-dot {
+    position: absolute;
+
+    width: 7px;
+    height: 7px;
+
+    right: -1px;
+    bottom: -1px;
+
+    border-radius: 50%;
+
+    background: #22c55e;
+
+    border: 1.5px solid #05070c;
+
+    box-shadow:
+        0 0 5px rgba(34, 197, 94, 0.8);
+}
+
+
+/* معلومات الحساب */
+
+.s-live-fixed-account .live-account-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    line-height: 1;
+}
+
+.s-live-fixed-account .live-username {
+    max-width: 100px;
+
+    font-size: 10px;
+    font-weight: 600;
+
+    color: #ffffff;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.s-live-fixed-account .live-status-text {
+    margin-top: 3px;
+
+    font-size: 7px;
+    font-weight: 700;
+
+    color: #f59e0b;
+
+    letter-spacing: 1px;
+}
+
+
+/* السهم */
+
+.s-live-fixed-account .live-arrow {
+    font-size: 11px;
+
+    color: rgba(255, 255, 255, 0.65);
+
+    transition: transform 0.2s ease;
+}
+
+.s-live-fixed-account .live-account-button[aria-expanded="true"] .live-arrow {
+    transform: rotate(180deg);
+}
+
+
+/* =========================================
+   القائمة
+   ========================================= */
+
+.s-live-fixed-account .live-dropdown {
+    position: absolute;
+
+    top: calc(100% + 5px);
+    left: 0;
+
+    width: 58px;
+
+    padding: 5px;
+
+    display: none;
+    flex-direction: column;
+    gap: 3px;
+
+    background: rgba(8, 10, 18, 0.96);
+
+    border: 1px solid rgba(245, 158, 11, 0.35);
+
+    border-radius: 11px;
+
+    box-shadow:
+        0 8px 25px rgba(0, 0, 0, 0.55),
+        0 0 12px rgba(245, 158, 11, 0.08);
+
+    backdrop-filter: blur(10px);
+
+    direction: ltr;
+}
+
+.s-live-fixed-account .live-dropdown.open {
+    display: flex;
+}
+
+
+/* أزرار القائمة */
+
+.s-live-fixed-account .dropdown-icon-button {
+    width: 100%;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border: 0;
+    border-radius: 9px;
+
+    background: transparent;
+
+    color: #ffffff;
+
+    font-family: inherit;
+    font-size: 19px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.18s ease,
+        transform 0.18s ease,
+        filter 0.18s ease;
+}
+
+.s-live-fixed-account .dropdown-icon-button:hover {
+    background: rgba(255, 190, 60, 0.10);
+
+    transform: scale(1.08);
+
+    filter:
+        drop-shadow(
+            0 0 5px
+            rgba(255, 190, 60, 0.45)
+        );
+}
+
+.s-live-fixed-account .dropdown-icon-button:active {
+    transform: scale(0.92);
+}
+
+
+/* زر Disconnect */
+
+.s-live-fixed-account .dropdown-icon-button.disconnect-button {
+    margin-top: 3px;
+
+    color: #ff6969;
+
+    background: rgba(220, 45, 45, 0.08);
+}
+
+.s-live-fixed-account .dropdown-icon-button.disconnect-button:hover {
+    background: rgba(220, 45, 45, 0.18);
+
+    filter:
+        drop-shadow(
+            0 0 5px
+            rgba(255, 70, 70, 0.45)
+        );
+}
+
+
+/* =========================================
+   مساحة الصفحات
+   ========================================= */
+
+.s-live-page-container {
+    width: 100%;
+    height: 100%;
+
+    position: relative;
+
+    overflow: hidden;
 }
