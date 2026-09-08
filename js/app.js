@@ -6,25 +6,25 @@
 
 const PAGE_STORAGE = "s_live_current_page";
 
-const pages = ["home", "games", "settings"];
+const PAGES = [
+    "home",
+    "games",
+    "settings"
+];
 
 let currentPage = null;
-let pageScript = null;
-let pageStyle = null;
+let currentScript = null;
+let currentStyle = null;
+let loadingPage = false;
 
 
 /* =========================================
    ELEMENTS
 ========================================= */
 
-const container = () =>
-    document.getElementById("s-live-page-container");
-
-const account = () =>
-    document.getElementById("s-live-fixed-account");
-
-const dropdown = () =>
-    document.getElementById("live-dropdown");
+function $(id) {
+    return document.getElementById(id);
+}
 
 
 /* =========================================
@@ -37,28 +37,31 @@ function updateAccount() {
         localStorage.getItem("s_live_username");
 
     const picture =
-        localStorage.getItem("s_live_profile_picture");
+        localStorage.getItem(
+            "s_live_profile_picture"
+        );
 
-    const nameElement =
-        document.getElementById("live-username");
+    const name =
+        $("live-username");
 
-    const imageElement =
-        document.getElementById("live-profile-image");
+    const image =
+        $("live-profile-image");
 
 
-    if (nameElement) {
-        nameElement.textContent =
+    if (name) {
+
+        name.textContent =
             username
                 ? "@" + username.replace(/^@/, "")
                 : "@username";
     }
 
 
-    if (imageElement) {
+    if (image) {
 
         if (picture) {
 
-            imageElement.src =
+            image.src =
                 picture.startsWith("/api/")
                     ? picture
                     : "/api/connection/proxy-image?url=" +
@@ -66,7 +69,7 @@ function updateAccount() {
 
         } else {
 
-            imageElement.removeAttribute("src");
+            image.removeAttribute("src");
         }
     }
 }
@@ -74,7 +77,8 @@ function updateAccount() {
 
 function showAccount() {
 
-    const element = account();
+    const element =
+        $("s-live-fixed-account");
 
     if (element) {
         element.style.display = "block";
@@ -86,7 +90,8 @@ function showAccount() {
 
 function hideAccount() {
 
-    const element = account();
+    const element =
+        $("s-live-fixed-account");
 
     if (element) {
         element.style.display = "none";
@@ -102,69 +107,128 @@ function hideAccount() {
 
 function openMenu() {
 
-    const menu = dropdown();
+    const menu = $("live-dropdown");
 
     if (!menu) return;
 
     menu.classList.add("open");
-    menu.setAttribute("aria-hidden", "false");
+    menu.setAttribute(
+        "aria-hidden",
+        "false"
+    );
 
     const button =
-        document.getElementById("live-account-button");
+        $("live-account-button");
 
     if (button) {
-        button.setAttribute("aria-expanded", "true");
+        button.setAttribute(
+            "aria-expanded",
+            "true"
+        );
     }
 }
 
 
 function closeMenu() {
 
-    const menu = dropdown();
+    const menu = $("live-dropdown");
 
     if (menu) {
+
         menu.classList.remove("open");
-        menu.setAttribute("aria-hidden", "true");
+
+        menu.setAttribute(
+            "aria-hidden",
+            "true"
+        );
     }
 
     const button =
-        document.getElementById("live-account-button");
+        $("live-account-button");
 
     if (button) {
-        button.setAttribute("aria-expanded", "false");
+
+        button.setAttribute(
+            "aria-expanded",
+            "false"
+        );
     }
 }
 
 
 function toggleMenu() {
 
-    const menu = dropdown();
+    const menu = $("live-dropdown");
 
     if (!menu) return;
 
-    menu.classList.contains("open")
-        ? closeMenu()
-        : openMenu();
+    if (menu.classList.contains("open")) {
+        closeMenu();
+    } else {
+        openMenu();
+    }
 }
 
 
 /* =========================================
-   PAGE CLEANUP
+   CLEAN CURRENT PAGE
 ========================================= */
 
 function cleanupPage() {
 
-    if (pageScript) {
-        pageScript.remove();
-        pageScript = null;
+    if (currentScript) {
+        currentScript.remove();
+        currentScript = null;
     }
 
-    if (pageStyle) {
-        pageStyle.remove();
-        pageStyle = null;
+    if (currentStyle) {
+        currentStyle.remove();
+        currentStyle = null;
     }
 
     currentPage = null;
+}
+
+
+/* =========================================
+   LOAD CSS
+========================================= */
+
+function loadPageCSS(name) {
+
+    const link =
+        document.createElement("link");
+
+    link.rel = "stylesheet";
+
+    link.href =
+        `pages/${name}/${name}.css`;
+
+    document.head.appendChild(link);
+
+    currentStyle = link;
+}
+
+
+/* =========================================
+   LOAD JS
+========================================= */
+
+function loadPageJS(name) {
+
+    const script =
+        document.createElement("script");
+
+    script.src =
+        `pages/${name}/${name}.js?${Date.now()}`;
+
+    /*
+     * لا ننتظر تحميل JS
+     */
+
+    document.body.appendChild(script);
+
+    currentScript = script;
 }
 
 
@@ -176,18 +240,27 @@ async function loadPage(name) {
 
     if (
         name !== "connection" &&
-        !pages.includes(name)
+        !PAGES.includes(name)
     ) {
         return;
     }
 
 
-    const target = container();
+    if (loadingPage) {
+        return;
+    }
 
-    if (!target) return;
+
+    const target =
+        $("s-live-page-container");
+
+    if (!target) {
+        return;
+    }
 
 
-    cleanupPage();
+    loadingPage = true;
+
     closeMenu();
 
 
@@ -204,46 +277,44 @@ async function loadPage(name) {
 
         if (!response.ok) {
             throw new Error(
-                `Failed to load ${name}`
+                "تعذر تحميل الصفحة"
             );
         }
 
 
-        target.innerHTML =
+        const html =
             await response.text();
 
 
-        /* CSS */
+        /*
+         * إزالة الصفحة القديمة
+         */
 
-        const style =
-            document.createElement("link");
-
-        style.rel = "stylesheet";
-        style.href =
-            `pages/${name}/${name}.css`;
-
-        document.head.appendChild(style);
-
-        pageStyle = style;
+        cleanupPage();
 
 
-        /* JS */
+        /*
+         * عرض الصفحة الجديدة فورًا
+         */
 
-        const script =
-            document.createElement("script");
-
-        script.src =
-            `pages/${name}/${name}.js?${Date.now()}`;
-
-        document.body.appendChild(script);
-
-        pageScript = script;
-
+        target.innerHTML = html;
 
         currentPage = name;
 
 
-        /* Account */
+        /*
+         * CSS و JS يتم تحميلهما
+         * بعد ظهور HTML
+         */
+
+        loadPageCSS(name);
+
+        loadPageJS(name);
+
+
+        /*
+         * الحساب
+         */
 
         if (name === "connection") {
 
@@ -267,7 +338,9 @@ async function loadPage(name) {
             error
         );
 
-        target.innerHTML = "";
+    } finally {
+
+        loadingPage = false;
     }
 }
 
@@ -285,7 +358,8 @@ function saveSession(data) {
 
         localStorage.setItem(
             "s_live_username",
-            String(data.username).replace(/^@/, "")
+            String(data.username)
+                .replace(/^@/, "")
         );
     }
 
@@ -303,7 +377,7 @@ function saveSession(data) {
 
         localStorage.setItem(
             "s_live_room_id",
-            data.roomId
+            String(data.roomId)
         );
     }
 
@@ -340,7 +414,7 @@ function clearSession() {
 
 
 /* =========================================
-   CONNECTION
+   CONNECT
 ========================================= */
 
 async function connect(username) {
@@ -348,10 +422,12 @@ async function connect(username) {
     const cleanName =
         String(username || "")
             .trim()
-            .replace(/^@/, "");
+            .replace(/^@+/, "")
+            .replace(/\s+/g, "");
 
 
     if (!cleanName) {
+
         throw new Error(
             "اسم المستخدم مطلوب"
         );
@@ -384,14 +460,16 @@ async function connect(username) {
         !response.ok ||
         !data.success
     ) {
+
         throw new Error(
             data.message ||
-            "فشل الاتصال"
+            "فشل الاتصال باللايف"
         );
     }
 
 
     saveSession(data);
+
     updateAccount();
 
     return data;
@@ -405,6 +483,10 @@ async function connect(username) {
 async function disconnect() {
 
     hideAccount();
+
+    cleanupPage();
+
+    clearSession();
 
 
     try {
@@ -425,9 +507,9 @@ async function disconnect() {
     }
 
 
-    clearSession();
-
-    await loadPage("connection");
+    await loadPage(
+        "connection"
+    );
 }
 
 
@@ -447,8 +529,9 @@ async function getStatus() {
 
 
     if (!response.ok) {
+
         throw new Error(
-            "Status error"
+            "تعذر معرفة حالة الاتصال"
         );
     }
 
@@ -464,17 +547,20 @@ async function getStatus() {
 function setupMenu() {
 
     const accountButton =
-        document.getElementById(
-            "live-account-button"
-        );
+        $("live-account-button");
+
 
     if (accountButton) {
 
-        accountButton.onclick = function (event) {
+        accountButton.addEventListener(
+            "click",
+            function (event) {
 
-            event.stopPropagation();
-            toggleMenu();
-        };
+                event.stopPropagation();
+
+                toggleMenu();
+            }
+        );
     }
 
 
@@ -485,42 +571,57 @@ function setupMenu() {
 
 
     const home =
-        document.getElementById("home-button");
+        $("home-button");
 
     const games =
-        document.getElementById("games-button");
+        $("games-button");
 
     const settings =
-        document.getElementById("settings-button");
+        $("settings-button");
 
     const disconnectButton =
-        document.getElementById("disconnect-button");
+        $("disconnect-button");
 
 
     if (home) {
-        home.onclick = () =>
-            loadPage("home");
+
+        home.addEventListener(
+            "click",
+            () => loadPage("home")
+        );
     }
+
 
     if (games) {
-        games.onclick = () =>
-            loadPage("games");
+
+        games.addEventListener(
+            "click",
+            () => loadPage("games")
+        );
     }
+
 
     if (settings) {
-        settings.onclick = () =>
-            loadPage("settings");
+
+        settings.addEventListener(
+            "click",
+            () => loadPage("settings")
+        );
     }
 
+
     if (disconnectButton) {
-        disconnectButton.onclick =
-            disconnect;
+
+        disconnectButton.addEventListener(
+            "click",
+            disconnect
+        );
     }
 }
 
 
 /* =========================================
-   START
+   START APP
 ========================================= */
 
 async function startApp() {
@@ -534,11 +635,16 @@ async function startApp() {
         );
 
 
-    /* لا توجد جلسة */
+    /*
+     * لا توجد جلسة
+     */
 
     if (!username) {
 
-        await loadPage("connection");
+        await loadPage(
+            "connection"
+        );
+
         return;
     }
 
@@ -549,6 +655,10 @@ async function startApp() {
             await getStatus();
 
 
+        /*
+         * الاتصال ما زال موجودًا
+         */
+
         if (
             status.success &&
             status.connected
@@ -557,21 +667,25 @@ async function startApp() {
             saveSession(status);
 
             await loadPage(
-                localStorage.getItem(PAGE_STORAGE) ||
-                "home"
+                localStorage.getItem(
+                    PAGE_STORAGE
+                ) || "home"
             );
 
             return;
         }
 
 
-        /* إعادة الاتصال */
+        /*
+         * محاولة إعادة الاتصال
+         */
 
         await connect(username);
 
         await loadPage(
-            localStorage.getItem(PAGE_STORAGE) ||
-            "home"
+            localStorage.getItem(
+                PAGE_STORAGE
+            ) || "home"
         );
 
 
@@ -584,7 +698,9 @@ async function startApp() {
 
         clearSession();
 
-        await loadPage("connection");
+        await loadPage(
+            "connection"
+        );
     }
 }
 
@@ -621,4 +737,4 @@ if (
 } else {
 
     startApp();
-}
+} 
