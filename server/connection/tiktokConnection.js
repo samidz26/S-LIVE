@@ -878,9 +878,12 @@ async function connectToTikTok(username) {
     ========================================= */
 
     activeProfilePicture =
-        getBroadcasterProfilePicture(
-            connection
-        );
+    getBroadcasterProfilePicture(connection);
+
+console.log(
+    "S-LIVE broadcaster profile URL:",
+    activeProfilePicture
+);
 
 
     console.log(
