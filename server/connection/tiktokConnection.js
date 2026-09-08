@@ -18,18 +18,26 @@ function getFirstUrl(value) {
         return null;
     }
 
+    // رابط مباشر
     if (typeof value === "string") {
 
-        return value.startsWith("http")
-            ? value
-            : null;
+        if (
+            value.startsWith("http://") ||
+            value.startsWith("https://")
+        ) {
+            return value;
+        }
+
+        return null;
     }
 
+    // Array
     if (Array.isArray(value)) {
 
         for (const item of value) {
 
-            const url = getFirstUrl(item);
+            const url =
+                getFirstUrl(item);
 
             if (url) {
                 return url;
@@ -39,22 +47,44 @@ function getFirstUrl(value) {
         return null;
     }
 
+    // Object
     if (typeof value === "object") {
 
         const possibleFields = [
+
             "url_list",
             "urlList",
+
             "url",
             "uri",
+
             "profilePictureUrl",
             "profile_picture_url",
+            "profilePicture",
+            "profile_picture",
+
             "avatar",
             "avatar_thumb",
             "avatarThumb",
-            "giftPictureUrl",
-            "gift_picture_url"
+
+            "avatar_larger",
+            "avatarLarger",
+
+            "avatar_medium",
+            "avatarMedium",
+
+            "avatar_small",
+            "avatarSmall",
+
+            "avatar_large",
+            "avatarLarge",
+
+            "image",
+            "imageUrl",
+            "image_url"
         ];
 
+        // البحث في الحقول المعروفة
         for (const field of possibleFields) {
 
             if (
@@ -75,6 +105,7 @@ function getFirstUrl(value) {
             }
         }
 
+        // البحث الذكي داخل جميع المفاتيح
         for (const key of Object.keys(value)) {
 
             const lowerKey =
@@ -83,7 +114,9 @@ function getFirstUrl(value) {
             if (
                 lowerKey.includes("avatar") ||
                 lowerKey.includes("profilepicture") ||
-                lowerKey.includes("giftpicture")
+                lowerKey.includes("profile_picture") ||
+                lowerKey.includes("profile") ||
+                lowerKey.includes("image")
             ) {
 
                 const url =
