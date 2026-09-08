@@ -39,7 +39,7 @@
 
 
         <!-- =================================
-             مساحة عرض الصفحات والألعاب
+             مساحة العرض
         ================================== -->
 
         <div
@@ -47,10 +47,137 @@
             id="app-screen"
         >
 
-            <!--
-                الصفحات سيتم تحميلها هنا
-                بواسطة app.js
-            -->
+            <!-- =================================
+                 الحساب الثابت
+            ================================== -->
+
+            <div
+                class="s-live-fixed-account"
+                id="s-live-fixed-account"
+            >
+
+                <div
+                    class="live-account"
+                    id="live-account"
+                >
+
+                    <button
+                        class="live-account-button"
+                        id="live-account-button"
+                        type="button"
+                        aria-expanded="false"
+                    >
+
+                        <div class="live-avatar-wrapper">
+
+                            <img
+                                id="live-profile-image"
+                                class="live-profile-image"
+                                src=""
+                                alt="TikTok"
+                                referrerpolicy="no-referrer"
+                            >
+
+                            <span
+                                class="live-status-dot"
+                                title="متصل"
+                            ></span>
+
+                        </div>
+
+
+                        <div class="live-account-info">
+
+                            <span
+                                id="live-username"
+                                class="live-username"
+                            >
+                                @username
+                            </span>
+
+                            <span class="live-status-text">
+                                LIVE
+                            </span>
+
+                        </div>
+
+
+                        <span
+                            class="live-arrow"
+                            aria-hidden="true"
+                        >
+                            ▾
+                        </span>
+
+                    </button>
+
+
+                    <!-- القائمة -->
+
+                    <div
+                        class="live-dropdown"
+                        id="live-dropdown"
+                        aria-hidden="true"
+                    >
+
+                        <button
+                            class="dropdown-icon-button"
+                            id="home-button"
+                            type="button"
+                            aria-label="Home"
+                            title="Home"
+                        >
+                            🏠
+                        </button>
+
+
+                        <button
+                            class="dropdown-icon-button"
+                            id="games-button"
+                            type="button"
+                            aria-label="Games"
+                            title="Games"
+                        >
+                            🎮
+                        </button>
+
+
+                        <button
+                            class="dropdown-icon-button"
+                            id="settings-button"
+                            type="button"
+                            aria-label="Settings"
+                            title="Settings"
+                        >
+                            ⚙️
+                        </button>
+
+
+                        <button
+                            class="dropdown-icon-button disconnect-button"
+                            id="disconnect-button"
+                            type="button"
+                            aria-label="Disconnect"
+                            title="Disconnect"
+                        >
+                            ❌
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================
+                 محتوى الصفحة المتغير
+            ================================== -->
+
+            <div
+                id="s-live-page-container"
+                class="s-live-page-container"
+            ></div>
 
         </div>
 
