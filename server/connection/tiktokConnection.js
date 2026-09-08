@@ -107,7 +107,6 @@ function getFirstUrl(value) {
 ========================================= */
 
 function getBroadcasterProfilePicture(connection) {
-function getBroadcasterProfilePicture(connection) {
     try {
         const roomInfo =
             connection?.roomInfo;
