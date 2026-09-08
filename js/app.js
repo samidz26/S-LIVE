@@ -1,1083 +1,201 @@
+"use strict";
+
 /* =========================================
    S-LIVE APP
 ========================================= */
 
-(function () {
+const PAGE_STORAGE = "s_live_current_page";
 
-    "use strict";
+const pages = ["home", "games", "settings"];
 
-
-    /* =========================================
-       STATE
-    ========================================= */
-
-    let activePage = null;
-    let activePageScript = null;
-    let activePageStyle = null;
-
-    const PAGE_STORAGE_KEY =
-        "s_live_current_page";
+let currentPage = null;
+let pageScript = null;
+let pageStyle = null;
 
 
-    const AVAILABLE_PAGES = [
-        "home",
-        "games",
-        "settings"
-    ];
+/* =========================================
+   ELEMENTS
+========================================= */
+
+const container = () =>
+    document.getElementById("s-live-page-container");
+
+const account = () =>
+    document.getElementById("s-live-fixed-account");
+
+const dropdown = () =>
+    document.getElementById("live-dropdown");
 
 
-    /* =========================================
-       ELEMENTS
-    ========================================= */
+/* =========================================
+   ACCOUNT
+========================================= */
 
-    function getPageContainer() {
+function updateAccount() {
 
-        return document.getElementById(
-            "s-live-page-container"
-        );
+    const username =
+        localStorage.getItem("s_live_username");
+
+    const picture =
+        localStorage.getItem("s_live_profile_picture");
+
+    const nameElement =
+        document.getElementById("live-username");
+
+    const imageElement =
+        document.getElementById("live-profile-image");
+
+
+    if (nameElement) {
+        nameElement.textContent =
+            username
+                ? "@" + username.replace(/^@/, "")
+                : "@username";
     }
 
 
-    function getFixedAccount() {
-
-        return document.getElementById(
-            "s-live-fixed-account"
-        );
-    }
-
-
-    function getAccountButton() {
-
-        return document.getElementById(
-            "live-account-button"
-        );
-    }
-
-
-    function getAccountDropdown() {
-
-        return document.getElementById(
-            "live-dropdown"
-        );
-    }
-
-
-    /* =========================================
-       IMAGE
-    ========================================= */
-
-    function getImageUrl(url) {
-
-        if (!url) {
-            return "";
-        }
-
-
-        if (
-            url.startsWith("/api/") ||
-            url.startsWith("data:")
-        ) {
-            return url;
-        }
-
-
-        return (
-            "/api/connection/proxy-image?url=" +
-            encodeURIComponent(url)
-        );
-    }
-
-
-    /* =========================================
-       ACCOUNT
-    ========================================= */
-
-    function updateAccountInfo() {
-
-        const usernameElement =
-            document.getElementById(
-                "live-username"
-            );
-
-
-        const profileImage =
-            document.getElementById(
-                "live-profile-image"
-            );
-
-
-        const username =
-            localStorage.getItem(
-                "s_live_username"
-            );
-
-
-        const profilePicture =
-            localStorage.getItem(
-                "s_live_profile_picture"
-            );
-
-
-        if (usernameElement) {
-
-            usernameElement.textContent =
-                username
-                    ? "@" +
-                      username.replace(/^@/, "")
-                    : "@username";
-        }
-
-
-        if (profileImage) {
-
-            if (profilePicture) {
-
-                profileImage.src =
-                    getImageUrl(
-                        profilePicture
-                    );
-
-            } else {
-
-                profileImage.removeAttribute(
-                    "src"
-                );
-            }
-        }
-    }
-
-
-    function showAccount() {
-
-        const account =
-            getFixedAccount();
-
-
-        if (!account) {
-            return;
-        }
-
-
-        account.style.display =
-            "block";
-
-
-        updateAccountInfo();
-    }
-
-
-    function hideAccount() {
-
-        const account =
-            getFixedAccount();
-
-
-        if (account) {
-
-            account.style.display =
-                "none";
-        }
-
-
-        closeAccountDropdown();
-
-
-        const usernameElement =
-            document.getElementById(
-                "live-username"
-            );
-
-
-        const profileImage =
-            document.getElementById(
-                "live-profile-image"
-            );
-
-
-        if (usernameElement) {
-
-            usernameElement.textContent =
-                "@username";
-        }
-
-
-        if (profileImage) {
-
-            profileImage.removeAttribute(
-                "src"
-            );
-        }
-    }
-
-
-    function updateAccountVisibility(
-        pageName
-    ) {
-
-        if (
-            pageName === "connection"
-        ) {
-
-            hideAccount();
-
-            return;
-        }
-
-
-        showAccount();
-    }
-
-
-    /* =========================================
-       DROPDOWN
-    ========================================= */
-
-    function openAccountDropdown() {
-
-        const dropdown =
-            getAccountDropdown();
-
-
-        const button =
-            getAccountButton();
-
-
-        if (!dropdown) {
-            return;
-        }
-
-
-        dropdown.classList.add(
-            "open"
-        );
-
-
-        dropdown.setAttribute(
-            "aria-hidden",
-            "false"
-        );
-
-
-        if (button) {
-
-            button.setAttribute(
-                "aria-expanded",
-                "true"
-            );
-        }
-    }
-
-
-    function closeAccountDropdown() {
-
-        const dropdown =
-            getAccountDropdown();
-
-
-        const button =
-            getAccountButton();
-
-
-        if (dropdown) {
-
-            dropdown.classList.remove(
-                "open"
-            );
-
-
-            dropdown.setAttribute(
-                "aria-hidden",
-                "true"
-            );
-        }
-
-
-        if (button) {
-
-            button.setAttribute(
-                "aria-expanded",
-                "false"
-            );
-        }
-    }
-
-
-    function toggleAccountDropdown() {
-
-        const dropdown =
-            getAccountDropdown();
-
-
-        if (!dropdown) {
-            return;
-        }
-
-
-        if (
-            dropdown.classList.contains(
-                "open"
-            )
-        ) {
-
-            closeAccountDropdown();
+    if (imageElement) {
+
+        if (picture) {
+
+            imageElement.src =
+                picture.startsWith("/api/")
+                    ? picture
+                    : "/api/connection/proxy-image?url=" +
+                      encodeURIComponent(picture);
 
         } else {
 
-            openAccountDropdown();
+            imageElement.removeAttribute("src");
         }
     }
+}
 
 
-    /* =========================================
-       ACCOUNT MENU
-    ========================================= */
+function showAccount() {
 
-    function initializeAccountMenu() {
+    const element = account();
 
-        const accountButton =
-            getAccountButton();
-
-
-        const dropdown =
-            getAccountDropdown();
-
-
-        if (!accountButton) {
-            return;
-        }
-
-
-        if (
-            accountButton.dataset
-                .sLiveInitialized === "true"
-        ) {
-
-            return;
-        }
-
-
-        accountButton.dataset
-            .sLiveInitialized = "true";
-
-
-        /* Account */
-
-        accountButton.addEventListener(
-            "click",
-            function (event) {
-
-                event.stopPropagation();
-
-                toggleAccountDropdown();
-            }
-        );
-
-
-        /* Dropdown */
-
-        if (dropdown) {
-
-            dropdown.addEventListener(
-                "click",
-                function (event) {
-
-                    event.stopPropagation();
-                }
-            );
-        }
-
-
-        /* Outside */
-
-        document.addEventListener(
-            "click",
-            function () {
-
-                closeAccountDropdown();
-            }
-        );
-
-
-        /* Home */
-
-        const homeButton =
-            document.getElementById(
-                "home-button"
-            );
-
-
-        if (homeButton) {
-
-            homeButton.addEventListener(
-                "click",
-                async function () {
-
-                    closeAccountDropdown();
-
-                    await loadPage(
-                        "home"
-                    );
-                }
-            );
-        }
-
-
-        /* Games */
-
-        const gamesButton =
-            document.getElementById(
-                "games-button"
-            );
-
-
-        if (gamesButton) {
-
-            gamesButton.addEventListener(
-                "click",
-                async function () {
-
-                    closeAccountDropdown();
-
-                    await loadPage(
-                        "games"
-                    );
-                }
-            );
-        }
-
-
-        /* Settings */
-
-        const settingsButton =
-            document.getElementById(
-                "settings-button"
-            );
-
-
-        if (settingsButton) {
-
-            settingsButton.addEventListener(
-                "click",
-                async function () {
-
-                    closeAccountDropdown();
-
-                    await loadPage(
-                        "settings"
-                    );
-                }
-            );
-        }
-
-
-        /* Disconnect */
-
-        const disconnectButton =
-            document.getElementById(
-                "disconnect-button"
-            );
-
-
-        if (disconnectButton) {
-
-            disconnectButton.addEventListener(
-                "click",
-                async function () {
-
-                    closeAccountDropdown();
-
-                    await handleDisconnect();
-                }
-            );
-        }
+    if (element) {
+        element.style.display = "block";
     }
 
+    updateAccount();
+}
 
-    /* =========================================
-       PAGE STORAGE
-    ========================================= */
 
-    function saveCurrentPage(
-        pageName
+function hideAccount() {
+
+    const element = account();
+
+    if (element) {
+        element.style.display = "none";
+    }
+
+    closeMenu();
+}
+
+
+/* =========================================
+   MENU
+========================================= */
+
+function openMenu() {
+
+    const menu = dropdown();
+
+    if (!menu) return;
+
+    menu.classList.add("open");
+    menu.setAttribute("aria-hidden", "false");
+
+    const button =
+        document.getElementById("live-account-button");
+
+    if (button) {
+        button.setAttribute("aria-expanded", "true");
+    }
+}
+
+
+function closeMenu() {
+
+    const menu = dropdown();
+
+    if (menu) {
+        menu.classList.remove("open");
+        menu.setAttribute("aria-hidden", "true");
+    }
+
+    const button =
+        document.getElementById("live-account-button");
+
+    if (button) {
+        button.setAttribute("aria-expanded", "false");
+    }
+}
+
+
+function toggleMenu() {
+
+    const menu = dropdown();
+
+    if (!menu) return;
+
+    menu.classList.contains("open")
+        ? closeMenu()
+        : openMenu();
+}
+
+
+/* =========================================
+   PAGE CLEANUP
+========================================= */
+
+function cleanupPage() {
+
+    if (pageScript) {
+        pageScript.remove();
+        pageScript = null;
+    }
+
+    if (pageStyle) {
+        pageStyle.remove();
+        pageStyle = null;
+    }
+
+    currentPage = null;
+}
+
+
+/* =========================================
+   LOAD PAGE
+========================================= */
+
+async function loadPage(name) {
+
+    if (
+        name !== "connection" &&
+        !pages.includes(name)
     ) {
-
-        if (
-            AVAILABLE_PAGES.includes(
-                pageName
-            )
-        ) {
-
-            localStorage.setItem(
-                PAGE_STORAGE_KEY,
-                pageName
-            );
-        }
+        return;
     }
 
 
-    function getSavedPage() {
+    const target = container();
 
-        const savedPage =
-            localStorage.getItem(
-                PAGE_STORAGE_KEY
-            );
+    if (!target) return;
 
 
-        if (
-            AVAILABLE_PAGES.includes(
-                savedPage
-            )
-        ) {
+    cleanupPage();
+    closeMenu();
 
-            return savedPage;
-        }
 
-
-        return "home";
-    }
-
-
-    function clearSavedPage() {
-
-        localStorage.removeItem(
-            PAGE_STORAGE_KEY
-        );
-    }
-
-
-    /* =========================================
-       PAGE CLEANUP
-    ========================================= */
-
-    function cleanupCurrentPage() {
-
-        if (activePage) {
-
-            window.dispatchEvent(
-                new CustomEvent(
-                    "s-live-page-changing",
-                    {
-                        detail: {
-                            page:
-                                activePage
-                        }
-                    }
-                )
-            );
-        }
-
-
-        window.dispatchEvent(
-            new CustomEvent(
-                "s-live-cleanup"
-            )
-        );
-
-
-        if (activePageScript) {
-
-            activePageScript.remove();
-
-            activePageScript =
-                null;
-        }
-
-
-        if (activePageStyle) {
-
-            activePageStyle.remove();
-
-            activePageStyle =
-                null;
-        }
-
-
-        const oldStyle =
-            document.getElementById(
-                "active-page-style"
-            );
-
-
-        if (oldStyle) {
-
-            oldStyle.remove();
-        }
-
-
-        activePage =
-            null;
-    }
-
-
-    /* =========================================
-       LOAD PAGE
-    ========================================= */
-
-    async function loadPage(
-        pageName
-    ) {
-
-        const pageContainer =
-            getPageContainer();
-
-
-        if (!pageContainer) {
-
-            console.error(
-                "S-LIVE: page container not found"
-            );
-
-            return false;
-        }
-
-
-        try {
-
-            cleanupCurrentPage();
-
-            closeAccountDropdown();
-
-
-            if (
-                pageName ===
-                "connection"
-            ) {
-
-                hideAccount();
-            }
-
-
-            const response =
-                await fetch(
-                    `pages/${pageName}/${pageName}.html`,
-                    {
-                        cache: "no-store"
-                    }
-                );
-
-
-            if (!response.ok) {
-
-                throw new Error(
-                    "Page could not be loaded"
-                );
-            }
-
-
-            const html =
-                await response.text();
-
-
-            pageContainer.innerHTML =
-                html;
-
-
-            await loadPageStyles(
-                pageName
-            );
-
-
-            await loadPageScript(
-                pageName
-            );
-
-
-            activePage =
-                pageName;
-
-
-            if (
-                pageName !==
-                "connection"
-            ) {
-
-                saveCurrentPage(
-                    pageName
-                );
-            }
-
-
-            updateAccountVisibility(
-                pageName
-            );
-
-
-            return true;
-
-
-        } catch (error) {
-
-            console.error(
-                "S-LIVE page error:",
-                error
-            );
-
-
-            pageContainer.innerHTML =
-                "";
-
-
-            return false;
-        }
-    }
-
-
-    /* =========================================
-       LOAD PAGE CSS
-    ========================================= */
-
-    function loadPageStyles(
-        pageName
-    ) {
-
-        return new Promise(
-            function (resolve) {
-
-                const link =
-                    document.createElement(
-                        "link"
-                    );
-
-
-                link.id =
-                    "active-page-style";
-
-
-                link.rel =
-                    "stylesheet";
-
-
-                link.href =
-                    `pages/${pageName}/${pageName}.css`;
-
-
-                link.onload =
-                    function () {
-
-                        activePageStyle =
-                            link;
-
-                        resolve();
-                    };
-
-
-                link.onerror =
-                    function () {
-
-                        resolve();
-                    };
-
-
-                document.head.appendChild(
-                    link
-                );
-            }
-        );
-    }
-
-
-    /* =========================================
-       LOAD PAGE JS
-    ========================================= */
-
-    function loadPageScript(
-        pageName
-    ) {
-
-        return new Promise(
-            function (resolve) {
-
-                const script =
-                    document.createElement(
-                        "script"
-                    );
-
-
-                script.id =
-                    "active-page-script";
-
-
-                script.src =
-                    `pages/${pageName}/${pageName}.js?ts=${Date.now()}`;
-
-
-                script.onload =
-                    function () {
-
-                        activePageScript =
-                            script;
-
-                        resolve();
-                    };
-
-
-                script.onerror =
-                    function () {
-
-                        resolve();
-                    };
-
-
-                document.body.appendChild(
-                    script
-                );
-            }
-        );
-    }
-
-
-    /* =========================================
-       SESSION
-    ========================================= */
-
-    function getSavedUsername() {
-
-        return localStorage.getItem(
-            "s_live_username"
-        );
-    }
-
-
-    function saveSession(
-        data
-    ) {
-
-        if (!data) {
-            return;
-        }
-
-
-        if (data.username) {
-
-            localStorage.setItem(
-                "s_live_username",
-                String(data.username)
-                    .replace(/^@/, "")
-            );
-        }
-
-
-        if (data.roomId) {
-
-            localStorage.setItem(
-                "s_live_room_id",
-                String(data.roomId)
-            );
-        }
-
-
-        if (data.profilePicture) {
-
-            localStorage.setItem(
-                "s_live_profile_picture",
-                data.profilePicture
-            );
-        }
-
-
-        localStorage.setItem(
-            "s_live_connected",
-            "true"
-        );
-    }
-
-
-    function clearSession() {
-
-        localStorage.removeItem(
-            "s_live_username"
-        );
-
-
-        localStorage.removeItem(
-            "s_live_connected"
-        );
-
-
-        localStorage.removeItem(
-            "s_live_room_id"
-        );
-
-
-        localStorage.removeItem(
-            "s_live_profile_picture"
-        );
-
-
-        clearSavedPage();
-    }
-
-
-    /* =========================================
-       CONNECT
-    ========================================= */
-
-    async function connect(
-        username
-    ) {
-
-        const cleanUsername =
-            String(username || "")
-                .trim()
-                .replace(/^@/, "");
-
-
-        if (!cleanUsername) {
-
-            throw new Error(
-                "اسم المستخدم مطلوب"
-            );
-        }
-
+    try {
 
         const response =
             await fetch(
-                "/api/connection/connect",
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body:
-                        JSON.stringify({
-                            username:
-                                cleanUsername
-                        })
-                }
-            );
-
-
-        const data =
-            await response.json()
-                .catch(
-                    function () {
-                        return {};
-                    }
-                );
-
-
-        if (
-            !response.ok ||
-            !data.success
-        ) {
-
-            throw new Error(
-                data.message ||
-                "فشل الاتصال باللايف"
-            );
-        }
-
-
-        saveSession(
-            data
-        );
-
-
-        updateAccountInfo();
-
-
-        return data;
-    }
-
-
-    /* =========================================
-       DISCONNECT
-    ========================================= */
-
-    async function handleDisconnect() {
-
-        /*
-         * نخفي الحساب فورًا.
-         */
-
-        hideAccount();
-
-
-        /*
-         * تنظيف الصفحة الحالية.
-         */
-
-        cleanupCurrentPage();
-
-
-        /*
-         * الانتقال مباشرة إلى Connection.
-         */
-
-        await loadPage(
-            "connection"
-        );
-
-
-        /*
-         * قطع اتصال TikTok.
-         */
-
-        try {
-
-            const response =
-                await fetch(
-                    "/api/connection/disconnect",
-                    {
-                        method: "POST",
-
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        }
-                    }
-                );
-
-
-            const data =
-                await response.json()
-                    .catch(
-                        function () {
-                            return {};
-                        }
-                    );
-
-
-            if (
-                !response.ok ||
-                data.success === false
-            ) {
-
-                throw new Error(
-                    data.message ||
-                    "تعذر قطع الاتصال"
-                );
-            }
-
-
-        } catch (error) {
-
-            console.error(
-                "S-LIVE disconnect error:",
-                error
-            );
-
-        } finally {
-
-            clearSession();
-
-            hideAccount();
-        }
-    }
-
-
-    /* =========================================
-       STATUS
-    ========================================= */
-
-    async function getStatus() {
-
-        const response =
-            await fetch(
-                "/api/connection/status",
+                `pages/${name}/${name}.html`,
                 {
                     cache: "no-store"
                 }
@@ -1085,237 +203,422 @@
 
 
         if (!response.ok) {
-
             throw new Error(
-                "تعذر معرفة حالة الاتصال"
+                `Failed to load ${name}`
             );
         }
 
 
-        return await response.json();
-    }
+        target.innerHTML =
+            await response.text();
 
 
-    /* =========================================
-       AUTOMATIC RECONNECT
-    ========================================= */
+        /* CSS */
 
-    async function reconnectAutomatically(
-        username
-    ) {
+        const style =
+            document.createElement("link");
 
-        if (!username) {
-            return false;
-        }
+        style.rel = "stylesheet";
+        style.href =
+            `pages/${name}/${name}.css`;
 
+        document.head.appendChild(style);
 
-        try {
-
-            const data =
-                await connect(
-                    username
-                );
+        pageStyle = style;
 
 
-            if (!data.success) {
-                return false;
-            }
+        /* JS */
+
+        const script =
+            document.createElement("script");
+
+        script.src =
+            `pages/${name}/${name}.js?${Date.now()}`;
+
+        document.body.appendChild(script);
+
+        pageScript = script;
 
 
-            await loadPage(
-                getSavedPage()
-            );
+        currentPage = name;
 
 
-            return true;
+        /* Account */
 
-
-        } catch (error) {
-
-            console.error(
-                "S-LIVE reconnect error:",
-                error
-            );
-
-
-            clearSession();
-
-
-            await loadPage(
-                "connection"
-            );
-
-
-            return false;
-        }
-    }
-
-
-    /* =========================================
-       INITIALIZE
-    ========================================= */
-
-    async function initializeApp() {
-
-        initializeAccountMenu();
-
-
-        const savedUsername =
-            getSavedUsername();
-
-
-        /*
-         * لا توجد جلسة.
-         */
-
-        if (!savedUsername) {
+        if (name === "connection") {
 
             hideAccount();
 
+        } else {
+
+            showAccount();
+
+            localStorage.setItem(
+                PAGE_STORAGE,
+                name
+            );
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "S-LIVE page error:",
+            error
+        );
+
+        target.innerHTML = "";
+    }
+}
+
+
+/* =========================================
+   SESSION
+========================================= */
+
+function saveSession(data) {
+
+    if (!data) return;
+
+
+    if (data.username) {
+
+        localStorage.setItem(
+            "s_live_username",
+            String(data.username).replace(/^@/, "")
+        );
+    }
+
+
+    if (data.profilePicture) {
+
+        localStorage.setItem(
+            "s_live_profile_picture",
+            data.profilePicture
+        );
+    }
+
+
+    if (data.roomId) {
+
+        localStorage.setItem(
+            "s_live_room_id",
+            data.roomId
+        );
+    }
+
+
+    localStorage.setItem(
+        "s_live_connected",
+        "true"
+    );
+}
+
+
+function clearSession() {
+
+    localStorage.removeItem(
+        "s_live_username"
+    );
+
+    localStorage.removeItem(
+        "s_live_profile_picture"
+    );
+
+    localStorage.removeItem(
+        "s_live_room_id"
+    );
+
+    localStorage.removeItem(
+        "s_live_connected"
+    );
+
+    localStorage.removeItem(
+        PAGE_STORAGE
+    );
+}
+
+
+/* =========================================
+   CONNECTION
+========================================= */
+
+async function connect(username) {
+
+    const cleanName =
+        String(username || "")
+            .trim()
+            .replace(/^@/, "");
+
+
+    if (!cleanName) {
+        throw new Error(
+            "اسم المستخدم مطلوب"
+        );
+    }
+
+
+    const response =
+        await fetch(
+            "/api/connection/connect",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    username: cleanName
+                })
+            }
+        );
+
+
+    const data =
+        await response.json();
+
+
+    if (
+        !response.ok ||
+        !data.success
+    ) {
+        throw new Error(
+            data.message ||
+            "فشل الاتصال"
+        );
+    }
+
+
+    saveSession(data);
+    updateAccount();
+
+    return data;
+}
+
+
+/* =========================================
+   DISCONNECT
+========================================= */
+
+async function disconnect() {
+
+    hideAccount();
+
+
+    try {
+
+        await fetch(
+            "/api/connection/disconnect",
+            {
+                method: "POST"
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Disconnect error:",
+            error
+        );
+    }
+
+
+    clearSession();
+
+    await loadPage("connection");
+}
+
+
+/* =========================================
+   STATUS
+========================================= */
+
+async function getStatus() {
+
+    const response =
+        await fetch(
+            "/api/connection/status",
+            {
+                cache: "no-store"
+            }
+        );
+
+
+    if (!response.ok) {
+        throw new Error(
+            "Status error"
+        );
+    }
+
+
+    return response.json();
+}
+
+
+/* =========================================
+   MENU EVENTS
+========================================= */
+
+function setupMenu() {
+
+    const accountButton =
+        document.getElementById(
+            "live-account-button"
+        );
+
+    if (accountButton) {
+
+        accountButton.onclick = function (event) {
+
+            event.stopPropagation();
+            toggleMenu();
+        };
+    }
+
+
+    document.addEventListener(
+        "click",
+        closeMenu
+    );
+
+
+    const home =
+        document.getElementById("home-button");
+
+    const games =
+        document.getElementById("games-button");
+
+    const settings =
+        document.getElementById("settings-button");
+
+    const disconnectButton =
+        document.getElementById("disconnect-button");
+
+
+    if (home) {
+        home.onclick = () =>
+            loadPage("home");
+    }
+
+    if (games) {
+        games.onclick = () =>
+            loadPage("games");
+    }
+
+    if (settings) {
+        settings.onclick = () =>
+            loadPage("settings");
+    }
+
+    if (disconnectButton) {
+        disconnectButton.onclick =
+            disconnect;
+    }
+}
+
+
+/* =========================================
+   START
+========================================= */
+
+async function startApp() {
+
+    setupMenu();
+
+
+    const username =
+        localStorage.getItem(
+            "s_live_username"
+        );
+
+
+    /* لا توجد جلسة */
+
+    if (!username) {
+
+        await loadPage("connection");
+        return;
+    }
+
+
+    try {
+
+        const status =
+            await getStatus();
+
+
+        if (
+            status.success &&
+            status.connected
+        ) {
+
+            saveSession(status);
 
             await loadPage(
-                "connection"
+                localStorage.getItem(PAGE_STORAGE) ||
+                "home"
             );
-
 
             return;
         }
 
 
-        try {
+        /* إعادة الاتصال */
 
-            const status =
-                await getStatus();
+        await connect(username);
 
-
-            /*
-             * الاتصال ما زال موجودًا.
-             */
-
-            if (
-                status.success &&
-                status.connected
-            ) {
-
-                if (status.username) {
-
-                    localStorage.setItem(
-                        "s_live_username",
-                        String(
-                            status.username
-                        ).replace(
-                            /^@/,
-                            ""
-                        )
-                    );
-                }
-
-
-                if (status.roomId) {
-
-                    localStorage.setItem(
-                        "s_live_room_id",
-                        String(
-                            status.roomId
-                        )
-                    );
-                }
-
-
-                if (
-                    status.profilePicture
-                ) {
-
-                    localStorage.setItem(
-                        "s_live_profile_picture",
-                        status.profilePicture
-                    );
-                }
-
-
-                localStorage.setItem(
-                    "s_live_connected",
-                    "true"
-                );
-
-
-                updateAccountInfo();
-
-
-                await loadPage(
-                    getSavedPage()
-                );
-
-
-                return;
-            }
-
-
-            /*
-             * الجلسة محفوظة لكن الاتصال
-             * غير موجود.
-             */
-
-            await reconnectAutomatically(
-                savedUsername
-            );
-
-
-        } catch (error) {
-
-            console.error(
-                "S-LIVE startup error:",
-                error
-            );
-
-
-            await reconnectAutomatically(
-                savedUsername
-            );
-        }
-    }
-
-
-    /* =========================================
-       PUBLIC API
-    ========================================= */
-
-    window.SLive = {
-
-        loadPage,
-
-        connect,
-
-        disconnect:
-            handleDisconnect,
-
-        getStatus,
-
-        reconnectAutomatically,
-
-        clearSession,
-
-        updateAccountInfo
-    };
-
-
-    /* =========================================
-       START
-    ========================================= */
-
-    if (
-        document.readyState ===
-        "loading"
-    ) {
-
-        document.addEventListener(
-            "DOMContentLoaded",
-            initializeApp
+        await loadPage(
+            localStorage.getItem(PAGE_STORAGE) ||
+            "home"
         );
 
-    } else {
 
-        initializeApp();
+    } catch (error) {
+
+        console.error(
+            "S-LIVE startup error:",
+            error
+        );
+
+        clearSession();
+
+        await loadPage("connection");
     }
+}
 
-})();
+
+/* =========================================
+   PUBLIC API
+========================================= */
+
+window.SLive = {
+
+    loadPage,
+    connect,
+    disconnect,
+    getStatus,
+    saveSession,
+    clearSession,
+    updateAccount
+};
+
+
+/* =========================================
+   RUN
+========================================= */
+
+if (
+    document.readyState === "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        startApp
+    );
+
+} else {
+
+    startApp();
+}
