@@ -8,7 +8,7 @@
 
 
     /* =========================================
-       GLOBAL STATE
+       STATE
     ========================================= */
 
     let activePage = null;
@@ -17,6 +17,13 @@
 
     const PAGE_STORAGE_KEY =
         "s_live_current_page";
+
+
+    const AVAILABLE_PAGES = [
+        "home",
+        "games",
+        "settings"
+    ];
 
 
     /* =========================================
@@ -82,53 +89,7 @@
 
 
     /* =========================================
-       ACCOUNT VISIBILITY
-    ========================================= */
-
-    function updateFixedAccountVisibility(
-        pageName
-    ) {
-
-        const account =
-            getFixedAccount();
-
-
-        if (!account) {
-            return;
-        }
-
-
-        /*
-         * في صفحة الاتصال:
-         * نخفي الحساب مباشرة.
-         */
-
-        if (pageName === "connection") {
-
-            account.style.display =
-                "none";
-
-            closeAccountDropdown();
-
-            return;
-        }
-
-
-        /*
-         * باقي الصفحات:
-         * يظهر الحساب.
-         */
-
-        account.style.display =
-            "block";
-
-
-        updateAccountInfo();
-    }
-
-
-    /* =========================================
-       ACCOUNT INFO
+       ACCOUNT
     ========================================= */
 
     function updateAccountInfo() {
@@ -137,6 +98,7 @@
             document.getElementById(
                 "live-username"
             );
+
 
         const profileImage =
             document.getElementById(
@@ -185,6 +147,87 @@
     }
 
 
+    function showAccount() {
+
+        const account =
+            getFixedAccount();
+
+
+        if (!account) {
+            return;
+        }
+
+
+        account.style.display =
+            "block";
+
+
+        updateAccountInfo();
+    }
+
+
+    function hideAccount() {
+
+        const account =
+            getFixedAccount();
+
+
+        if (account) {
+
+            account.style.display =
+                "none";
+        }
+
+
+        closeAccountDropdown();
+
+
+        const usernameElement =
+            document.getElementById(
+                "live-username"
+            );
+
+
+        const profileImage =
+            document.getElementById(
+                "live-profile-image"
+            );
+
+
+        if (usernameElement) {
+
+            usernameElement.textContent =
+                "@username";
+        }
+
+
+        if (profileImage) {
+
+            profileImage.removeAttribute(
+                "src"
+            );
+        }
+    }
+
+
+    function updateAccountVisibility(
+        pageName
+    ) {
+
+        if (
+            pageName === "connection"
+        ) {
+
+            hideAccount();
+
+            return;
+        }
+
+
+        showAccount();
+    }
+
+
     /* =========================================
        DROPDOWN
     ========================================= */
@@ -193,6 +236,7 @@
 
         const dropdown =
             getAccountDropdown();
+
 
         const button =
             getAccountButton();
@@ -229,6 +273,7 @@
         const dropdown =
             getAccountDropdown();
 
+
         const button =
             getAccountButton();
 
@@ -238,6 +283,7 @@
             dropdown.classList.remove(
                 "open"
             );
+
 
             dropdown.setAttribute(
                 "aria-hidden",
@@ -297,25 +343,14 @@
 
 
         if (!accountButton) {
-
-            console.warn(
-                "S-LIVE: account button not found"
-            );
-
             return;
         }
 
-
-        /*
-         * منع تسجيل الأحداث أكثر من مرة.
-         */
 
         if (
             accountButton.dataset
                 .sLiveInitialized === "true"
         ) {
-
-            updateAccountInfo();
 
             return;
         }
@@ -325,7 +360,7 @@
             .sLiveInitialized = "true";
 
 
-        /* فتح القائمة */
+        /* Account */
 
         accountButton.addEventListener(
             "click",
@@ -338,7 +373,7 @@
         );
 
 
-        /* منع إغلاقها عند الضغط داخل القائمة */
+        /* Dropdown */
 
         if (dropdown) {
 
@@ -352,7 +387,7 @@
         }
 
 
-        /* الضغط خارج القائمة */
+        /* Outside */
 
         document.addEventListener(
             "click",
@@ -451,155 +486,126 @@
 
                     closeAccountDropdown();
 
-
-                    /*
-                     * نخفي الحساب فورًا.
-                     */
-
-                    hideAccountImmediately();
-
-
-                    /*
-                     * ننتقل فورًا إلى Connection
-                     * من ناحية الواجهة.
-                     */
-
-                    await loadPage(
-                        "connection"
-                    );
-
-
-                    /*
-                     * ثم نقطع الاتصال في الخلفية.
-                     */
-
-                    try {
-
-                        await disconnect();
-
-                    } catch (error) {
-
-                        console.error(
-                            "S-LIVE disconnect error:",
-                            error
-                        );
-                    }
+                    await handleDisconnect();
                 }
             );
         }
-
-
-        updateAccountInfo();
     }
 
 
     /* =========================================
-       HIDE ACCOUNT IMMEDIATELY
-    ========================================= */
-
-    function hideAccountImmediately() {
-
-        const account =
-            getFixedAccount();
-
-
-        if (account) {
-
-            account.style.display =
-                "none";
-        }
-
-
-        closeAccountDropdown();
-
-
-        /*
-         * إزالة صورة واسم الحساب
-         * فورًا من الواجهة.
-         */
-
-        const usernameElement =
-            document.getElementById(
-                "live-username"
-            );
-
-        const profileImage =
-            document.getElementById(
-                "live-profile-image"
-            );
-
-
-        if (usernameElement) {
-
-            usernameElement.textContent =
-                "@username";
-        }
-
-
-        if (profileImage) {
-
-            profileImage.removeAttribute(
-                "src"
-            );
-        }
-    }
-
-
-    /* =========================================
-       SAVE CURRENT PAGE
+       PAGE STORAGE
     ========================================= */
 
     function saveCurrentPage(
         pageName
     ) {
 
-        if (!pageName) {
-            return;
+        if (
+            AVAILABLE_PAGES.includes(
+                pageName
+            )
+        ) {
+
+            localStorage.setItem(
+                PAGE_STORAGE_KEY,
+                pageName
+            );
         }
-
-
-        if (pageName === "connection") {
-            return;
-        }
-
-
-        localStorage.setItem(
-            PAGE_STORAGE_KEY,
-            pageName
-        );
     }
 
 
-    /* =========================================
-       GET SAVED PAGE
-    ========================================= */
-
     function getSavedPage() {
 
-        const page =
+        const savedPage =
             localStorage.getItem(
                 PAGE_STORAGE_KEY
             );
 
 
-        const allowedPages = [
-            "home",
-            "games",
-            "settings"
-        ];
-
-
         if (
-            allowedPages.includes(
-                page
+            AVAILABLE_PAGES.includes(
+                savedPage
             )
         ) {
 
-            return page;
+            return savedPage;
         }
 
 
         return "home";
+    }
+
+
+    function clearSavedPage() {
+
+        localStorage.removeItem(
+            PAGE_STORAGE_KEY
+        );
+    }
+
+
+    /* =========================================
+       PAGE CLEANUP
+    ========================================= */
+
+    function cleanupCurrentPage() {
+
+        if (activePage) {
+
+            window.dispatchEvent(
+                new CustomEvent(
+                    "s-live-page-changing",
+                    {
+                        detail: {
+                            page:
+                                activePage
+                        }
+                    }
+                )
+            );
+        }
+
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "s-live-cleanup"
+            )
+        );
+
+
+        if (activePageScript) {
+
+            activePageScript.remove();
+
+            activePageScript =
+                null;
+        }
+
+
+        if (activePageStyle) {
+
+            activePageStyle.remove();
+
+            activePageStyle =
+                null;
+        }
+
+
+        const oldStyle =
+            document.getElementById(
+                "active-page-style"
+            );
+
+
+        if (oldStyle) {
+
+            oldStyle.remove();
+        }
+
+
+        activePage =
+            null;
     }
 
 
@@ -618,7 +624,7 @@
         if (!pageContainer) {
 
             console.error(
-                "S-LIVE: #s-live-page-container غير موجود"
+                "S-LIVE: page container not found"
             );
 
             return false;
@@ -627,37 +633,19 @@
 
         try {
 
-            /*
-             * تنظيف الصفحة الحالية
-             */
-
             cleanupCurrentPage();
-
-
-            /*
-             * إغلاق القائمة
-             */
 
             closeAccountDropdown();
 
-
-            /*
-             * إذا كانت Connection:
-             * أخف الحساب فورًا.
-             */
 
             if (
                 pageName ===
                 "connection"
             ) {
 
-                hideAccountImmediately();
+                hideAccount();
             }
 
-
-            /*
-             * تحميل HTML
-             */
 
             const response =
                 await fetch(
@@ -671,7 +659,7 @@
             if (!response.ok) {
 
                 throw new Error(
-                    `تعذر تحميل الصفحة: ${pageName}`
+                    "Page could not be loaded"
                 );
             }
 
@@ -680,54 +668,36 @@
                 await response.text();
 
 
-            /*
-             * وضع الصفحة الجديدة
-             */
-
             pageContainer.innerHTML =
                 html;
 
-
-            /*
-             * تحميل CSS
-             */
 
             await loadPageStyles(
                 pageName
             );
 
 
-            /*
-             * تحميل JS
-             */
-
             await loadPageScript(
                 pageName
             );
 
 
-            /*
-             * تحديث الصفحة الحالية
-             */
-
             activePage =
                 pageName;
 
 
-            /*
-             * حفظ الصفحة
-             */
+            if (
+                pageName !==
+                "connection"
+            ) {
 
-            saveCurrentPage(
-                pageName
-            );
+                saveCurrentPage(
+                    pageName
+                );
+            }
 
 
-            /*
-             * إظهار / إخفاء الحساب
-             */
-
-            updateFixedAccountVisibility(
+            updateAccountVisibility(
                 pageName
             );
 
@@ -738,27 +708,13 @@
         } catch (error) {
 
             console.error(
-                "S-LIVE loadPage error:",
+                "S-LIVE page error:",
                 error
             );
 
 
-            pageContainer.innerHTML = `
-                <div style="
-                    width:100%;
-                    height:100%;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    text-align:center;
-                    color:#fff;
-                    font-family:inherit;
-                    padding:20px;
-                    box-sizing:border-box;
-                ">
-                    تعذر تحميل الصفحة
-                </div>
-            `;
+            pageContainer.innerHTML =
+                "";
 
 
             return false;
@@ -767,7 +723,7 @@
 
 
     /* =========================================
-       LOAD CSS
+       LOAD PAGE CSS
     ========================================= */
 
     function loadPageStyles(
@@ -775,7 +731,7 @@
     ) {
 
         return new Promise(
-            (resolve) => {
+            function (resolve) {
 
                 const link =
                     document.createElement(
@@ -808,10 +764,6 @@
                 link.onerror =
                     function () {
 
-                        console.warn(
-                            `S-LIVE: تعذر تحميل CSS لـ ${pageName}`
-                        );
-
                         resolve();
                     };
 
@@ -825,7 +777,7 @@
 
 
     /* =========================================
-       LOAD JS
+       LOAD PAGE JS
     ========================================= */
 
     function loadPageScript(
@@ -833,7 +785,7 @@
     ) {
 
         return new Promise(
-            (resolve) => {
+            function (resolve) {
 
                 const script =
                     document.createElement(
@@ -862,10 +814,6 @@
                 script.onerror =
                     function () {
 
-                        console.warn(
-                            `S-LIVE: تعذر تحميل JS لـ ${pageName}`
-                        );
-
                         resolve();
                     };
 
@@ -875,77 +823,6 @@
                 );
             }
         );
-    }
-
-
-    /* =========================================
-       CLEANUP CURRENT PAGE
-    ========================================= */
-
-    function cleanupCurrentPage() {
-
-        /*
-         * اطلب من الصفحة الحالية
-         * تنظيف كل مواردها.
-         */
-
-        window.dispatchEvent(
-            new CustomEvent(
-                "s-live-page-changing",
-                {
-                    detail: {
-                        page:
-                            activePage
-                    }
-                }
-            )
-        );
-
-
-        window.dispatchEvent(
-            new CustomEvent(
-                "s-live-cleanup"
-            )
-        );
-
-
-        /*
-         * حذف JS
-         */
-
-        if (activePageScript) {
-
-            activePageScript.remove();
-
-            activePageScript =
-                null;
-        }
-
-
-        /*
-         * حذف CSS
-         */
-
-        if (activePageStyle) {
-
-            activePageStyle.remove();
-
-            activePageStyle =
-                null;
-
-        } else {
-
-            const oldStyle =
-                document.getElementById(
-                    "active-page-style"
-                );
-
-
-            if (oldStyle) {
-
-                oldStyle.remove();
-            }
-        }
     }
 
 
@@ -961,7 +838,9 @@
     }
 
 
-    function saveSession(data) {
+    function saveSession(
+        data
+    ) {
 
         if (!data) {
             return;
@@ -1009,22 +888,23 @@
             "s_live_username"
         );
 
+
         localStorage.removeItem(
             "s_live_connected"
         );
 
+
         localStorage.removeItem(
             "s_live_room_id"
         );
+
 
         localStorage.removeItem(
             "s_live_profile_picture"
         );
 
 
-        localStorage.removeItem(
-            PAGE_STORAGE_KEY
-        );
+        clearSavedPage();
     }
 
 
@@ -1032,7 +912,9 @@
        CONNECT
     ========================================= */
 
-    async function connect(username) {
+    async function connect(
+        username
+    ) {
 
         const cleanUsername =
             String(username || "")
@@ -1070,7 +952,11 @@
 
         const data =
             await response.json()
-                .catch(() => ({}));
+                .catch(
+                    function () {
+                        return {};
+                    }
+                );
 
 
         if (
@@ -1085,7 +971,10 @@
         }
 
 
-        saveSession(data);
+        saveSession(
+            data
+        );
+
 
         updateAccountInfo();
 
@@ -1098,25 +987,34 @@
        DISCONNECT
     ========================================= */
 
-    async function disconnect() {
+    async function handleDisconnect() {
 
         /*
-         * الحساب يختفي قبل أي انتظار.
+         * نخفي الحساب فورًا.
          */
 
-        hideAccountImmediately();
+        hideAccount();
 
 
         /*
          * تنظيف الصفحة الحالية.
          */
 
-        window.dispatchEvent(
-            new CustomEvent(
-                "s-live-cleanup"
-            )
+        cleanupCurrentPage();
+
+
+        /*
+         * الانتقال مباشرة إلى Connection.
+         */
+
+        await loadPage(
+            "connection"
         );
 
+
+        /*
+         * قطع اتصال TikTok.
+         */
 
         try {
 
@@ -1136,7 +1034,11 @@
 
             const data =
                 await response.json()
-                    .catch(() => ({}));
+                    .catch(
+                        function () {
+                            return {};
+                        }
+                    );
 
 
             if (
@@ -1151,14 +1053,18 @@
             }
 
 
-            return true;
+        } catch (error) {
 
+            console.error(
+                "S-LIVE disconnect error:",
+                error
+            );
 
         } finally {
 
             clearSession();
 
-            hideAccountImmediately();
+            hideAccount();
         }
     }
 
@@ -1211,22 +1117,23 @@
                 );
 
 
-            const savedPage =
-                getSavedPage();
+            if (!data.success) {
+                return false;
+            }
 
 
             await loadPage(
-                savedPage
+                getSavedPage()
             );
 
 
-            return !!data.success;
+            return true;
 
 
         } catch (error) {
 
             console.error(
-                "S-LIVE automatic reconnect error:",
+                "S-LIVE reconnect error:",
                 error
             );
 
@@ -1245,14 +1152,10 @@
 
 
     /* =========================================
-       INITIALIZE APP
+       INITIALIZE
     ========================================= */
 
     async function initializeApp() {
-
-        /*
-         * تهيئة قائمة الحساب مرة واحدة.
-         */
 
         initializeAccountMenu();
 
@@ -1267,9 +1170,13 @@
 
         if (!savedUsername) {
 
+            hideAccount();
+
+
             await loadPage(
                 "connection"
             );
+
 
             return;
         }
@@ -1282,7 +1189,7 @@
 
 
             /*
-             * السيرفر متصل.
+             * الاتصال ما زال موجودًا.
              */
 
             if (
@@ -1294,8 +1201,12 @@
 
                     localStorage.setItem(
                         "s_live_username",
-                        String(status.username)
-                            .replace(/^@/, "")
+                        String(
+                            status.username
+                        ).replace(
+                            /^@/,
+                            ""
+                        )
                     );
                 }
 
@@ -1304,12 +1215,16 @@
 
                     localStorage.setItem(
                         "s_live_room_id",
-                        String(status.roomId)
+                        String(
+                            status.roomId
+                        )
                     );
                 }
 
 
-                if (status.profilePicture) {
+                if (
+                    status.profilePicture
+                ) {
 
                     localStorage.setItem(
                         "s_live_profile_picture",
@@ -1327,17 +1242,8 @@
                 updateAccountInfo();
 
 
-                /*
-                 * العودة إلى الصفحة
-                 * التي كان المستخدم فيها.
-                 */
-
-                const savedPage =
-                    getSavedPage();
-
-
                 await loadPage(
-                    savedPage
+                    getSavedPage()
                 );
 
 
@@ -1346,7 +1252,8 @@
 
 
             /*
-             * إعادة الاتصال.
+             * الجلسة محفوظة لكن الاتصال
+             * غير موجود.
              */
 
             await reconnectAutomatically(
@@ -1357,7 +1264,7 @@
         } catch (error) {
 
             console.error(
-                "S-LIVE startup status error:",
+                "S-LIVE startup error:",
                 error
             );
 
@@ -1377,11 +1284,10 @@
 
         loadPage,
 
-        initializeApp,
-
         connect,
 
-        disconnect,
+        disconnect:
+            handleDisconnect,
 
         getStatus,
 
