@@ -942,23 +942,44 @@ async function connectToTikTok(username) {
         roomId || null;
 
 
-    /* =========================================
-       BROADCASTER PROFILE
-    ========================================= */
-
+    
     /* =========================================
    BROADCASTER PROFILE
 ========================================= */
 
 try {
 
-    // طلب معلومات الغرفة بشكل صريح
     const roomInfo =
         await connection.fetchRoomInfo();
 
-    // وضعها في connection حتى تستخدمها الدالة
     connection.roomInfo =
         roomInfo;
+
+    console.log(
+        "S-LIVE ROOM INFO KEYS:",
+        Object.keys(roomInfo || {})
+    );
+
+    const owner =
+        roomInfo?.owner ||
+        roomInfo?.room?.owner ||
+        roomInfo?.anchor ||
+        roomInfo?.host ||
+        roomInfo?.room?.anchor ||
+        roomInfo?.room?.host;
+
+    console.log(
+        "S-LIVE OWNER EXISTS:",
+        !!owner
+    );
+
+    if (owner) {
+
+        console.log(
+            "S-LIVE OWNER KEYS:",
+            Object.keys(owner)
+        );
+    }
 
     activeProfilePicture =
         getBroadcasterProfilePicture(
@@ -980,18 +1001,6 @@ try {
     activeProfilePicture =
         null;
 }
-
-
-    console.log(
-        "S-LIVE connected:",
-        `@${cleanUsername}`,
-        "room:",
-        activeRoomId,
-        "profile:",
-        activeProfilePicture
-            ? "found"
-            : "not found"
-    );
 
 
     /* =========================================
