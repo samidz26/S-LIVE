@@ -1,39 +1,56 @@
 "use strict";
-let followEventSource = null;
-let followHideTimer = null;
+
+/* =========================================================
+   S-LIVE HOME
+   الأحداث الحالية:
+   - 🎁 Rose
+   - ✨ Follow
+========================================================= */
+
+
+/* =========================================================
+   Gift
+========================================================= */
+
 let giftEventSource = null;
 let giftHideTimer = null;
+
+
+/* =========================================================
+   Follow
+========================================================= */
+
+let followEventSource = null;
+let followHideTimer = null;
+
+
+/* =========================================================
+   أدوات عامة
+========================================================= */
 
 function getElement(id) {
     return document.getElementById(id);
 }
 
 
-/* ==============================
-   تحميل CSS لتأثير الورود
-============================== */
+/* =========================================================
+   تحميل تأثير الورود
+========================================================= */
 
 function loadRoseEffect() {
 
-    if (document.getElementById("rose-effect-css")) {
-        return;
+    if (!document.getElementById("rose-effect-css")) {
+
+        const link = document.createElement("link");
+
+        link.id = "rose-effect-css";
+        link.rel = "stylesheet";
+
+        link.href =
+            "/effects/gifts/rose/rose.css";
+
+        document.head.appendChild(link);
     }
-
-    const link = document.createElement("link");
-
-    link.id = "rose-effect-css";
-    link.rel = "stylesheet";
-    link.href = "/effects/gifts/rose/rose.css";
-
-    document.head.appendChild(link);
-}
-
-
-/* ==============================
-   تحميل JavaScript لتأثير الورود
-============================== */
-
-function loadRoseScript() {
 
     if (window.RoseEffect) {
         return;
@@ -41,24 +58,106 @@ function loadRoseScript() {
 
     const script = document.createElement("script");
 
-    script.src = "/effects/gifts/rose/rose.js";
+    script.src =
+        "/effects/gifts/rose/rose.js";
+
+    script.onload = () => {
+
+        console.log(
+            "S-LIVE: Rose Effect loaded"
+        );
+
+    };
+
+    script.onerror = () => {
+
+        console.error(
+            "S-LIVE: Failed to load Rose Effect"
+        );
+
+    };
 
     document.body.appendChild(script);
 }
 
 
-/* ==============================
-   إظهار معلومات الهدية
-============================== */
+/* =========================================================
+   تحميل تأثير المتابعة
+========================================================= */
+
+function loadFollowEffect() {
+
+    if (!document.getElementById("follow-effect-css")) {
+
+        const link = document.createElement("link");
+
+        link.id = "follow-effect-css";
+
+        link.rel = "stylesheet";
+
+        link.href =
+            "/effects/follow/follow.css";
+
+        document.head.appendChild(link);
+    }
+
+    if (window.FollowEffect) {
+        return;
+    }
+
+    const script = document.createElement("script");
+
+    script.src =
+        "/effects/follow/follow.js";
+
+    script.onload = () => {
+
+        console.log(
+            "S-LIVE: Follow Effect loaded"
+        );
+
+    };
+
+    script.onerror = () => {
+
+        console.error(
+            "S-LIVE: Failed to load Follow Effect"
+        );
+
+    };
+
+    document.body.appendChild(script);
+}
+
+
+/* =========================================================
+   عرض الهدية
+========================================================= */
 
 function showGift(gift) {
 
-    const center = getElement("gift-center");
-    const image = getElement("gift-user-image");
-    const name = getElement("gift-user-name");
-    const message = getElement("gift-message");
+    const center =
+        getElement("gift-center");
 
-    if (!center || !image || !name || !message) {
+    const image =
+        getElement("gift-user-image");
+
+    const name =
+        getElement("gift-user-name");
+
+    const message =
+        getElement("gift-message");
+
+    if (
+        !center ||
+        !image ||
+        !name ||
+        !message
+    ) {
+        console.warn(
+            "S-LIVE: Gift UI elements not found"
+        );
+
         return;
     }
 
@@ -68,7 +167,8 @@ function showGift(gift) {
         "مستخدم TikTok";
 
     const profilePicture =
-        gift.profilePictureUrl || "";
+        gift.profilePictureUrl ||
+        "";
 
     const giftName =
         gift.giftName ||
@@ -79,10 +179,14 @@ function showGift(gift) {
             ? Number(gift.repeatCount)
             : 1;
 
-    name.textContent = `@${username.replace(/^@/, "")}`;
 
-    message.textContent =
-        `🎁 أرسل ${giftName} ×${quantity}`;
+    /* الاسم */
+
+    name.textContent =
+        `@${String(username).replace(/^@/, "")}`;
+
+
+    /* الصورة */
 
     if (profilePicture) {
 
@@ -91,53 +195,71 @@ function showGift(gift) {
                 ? profilePicture
                 : `/api/connection/proxy-image?url=${encodeURIComponent(profilePicture)}`;
 
-        image.style.display = "block";
+        image.style.display =
+            "block";
 
     } else {
 
         image.removeAttribute("src");
-        image.style.display = "none";
+
+        image.style.display =
+            "none";
     }
+
+
+    /* الرسالة */
+
+    message.textContent =
+        `🎁 أرسل ${giftName} ×${quantity}`;
+
+
+    /* Animation */
 
     clearTimeout(giftHideTimer);
 
     center.classList.remove("show");
 
-    /*
-     * إجبار المتصفح على إعادة تشغيل Animation
-     */
     void center.offsetWidth;
 
     center.classList.add("show");
 
-    giftHideTimer = setTimeout(() => {
 
-        center.classList.remove("show");
+    /* مدة العرض */
 
-    }, 5000);
+    giftHideTimer =
+        setTimeout(() => {
+
+            center.classList.remove("show");
+
+        }, 5000);
 }
 
 
-/* ==============================
-   تشغيل تأثير Rose
-============================== */
+/* =========================================================
+   تشغيل تأثير الوردة
+========================================================= */
 
-function playRoseGift(gift) {
+function playRoseGift() {
 
-    if (!window.RoseEffect) {
-        return;
+    if (
+        window.RoseEffect &&
+        typeof window.RoseEffect.play === "function"
+    ) {
+
+        window.RoseEffect.play();
+
+    } else {
+
+        console.warn(
+            "S-LIVE: RoseEffect is not ready"
+        );
     }
-
-    /*
-     * التأثير موحد مهما كانت الكمية.
-     */
-    window.RoseEffect.play();
 }
 
 
-/* ==============================
+/* =========================================================
    معالجة الهدية
-============================== */
+========================================================= */
 
 function handleGift(gift) {
 
@@ -150,8 +272,15 @@ function handleGift(gift) {
             .trim()
             .toLowerCase();
 
+
+    console.log(
+        "S-LIVE: Processing gift:",
+        gift
+    );
+
+
     /*
-     * حاليًا نختبر Rose فقط.
+     * حاليًا نربط Rose فقط.
      */
 
     if (
@@ -163,23 +292,31 @@ function handleGift(gift) {
 
         showGift(gift);
 
-        playRoseGift(gift);
+        playRoseGift();
+
     }
 }
 
 
-/* ==============================
-   الاتصال بـ SSE
-============================== */
+/* =========================================================
+   الاتصال بأحداث الهدايا
+========================================================= */
 
 function connectGiftEvents() {
 
     if (giftEventSource) {
+
         giftEventSource.close();
+
+        giftEventSource = null;
     }
 
+
     giftEventSource =
-        new EventSource("/api/connection/events");
+        new EventSource(
+            "/api/connection/events"
+        );
+
 
     giftEventSource.addEventListener(
         "gift",
@@ -209,36 +346,226 @@ function connectGiftEvents() {
         }
     );
 
+
     giftEventSource.onerror = () => {
 
         console.warn(
-            "S-LIVE gift SSE connection lost"
+            "S-LIVE: Gift SSE connection lost"
         );
 
     };
 }
 
 
-/* ==============================
-   تشغيل الصفحة
-============================== */
+/* =========================================================
+   عرض المتابعة
+========================================================= */
+
+function showFollow(follow) {
+
+    const center =
+        getElement("follow-center");
+
+    const image =
+        getElement("follow-user-image");
+
+    const name =
+        getElement("follow-user-name");
+
+
+    if (
+        !center ||
+        !image ||
+        !name
+    ) {
+
+        console.warn(
+            "S-LIVE: Follow UI elements not found"
+        );
+
+        return;
+    }
+
+
+    const username =
+        follow.nickname ||
+        follow.uniqueId ||
+        "مستخدم TikTok";
+
+
+    const profilePicture =
+        follow.profilePictureUrl ||
+        "";
+
+
+    /* الاسم */
+
+    name.textContent =
+        `@${String(username).replace(/^@/, "")}`;
+
+
+    /* الصورة */
+
+    if (profilePicture) {
+
+        image.src =
+            profilePicture.startsWith("/api/")
+                ? profilePicture
+                : `/api/connection/proxy-image?url=${encodeURIComponent(profilePicture)}`;
+
+        image.style.display =
+            "block";
+
+    } else {
+
+        image.removeAttribute("src");
+
+        image.style.display =
+            "none";
+    }
+
+
+    /* إعادة تشغيل Animation */
+
+    clearTimeout(followHideTimer);
+
+    center.classList.remove("show");
+
+    void center.offsetWidth;
+
+    center.classList.add("show");
+
+
+    /* تشغيل النجوم */
+
+    if (
+        window.FollowEffect &&
+        typeof window.FollowEffect.play === "function"
+    ) {
+
+        window.FollowEffect.play();
+
+    } else {
+
+        console.warn(
+            "S-LIVE: FollowEffect is not ready"
+        );
+    }
+
+
+    /* 5 ثوانٍ */
+
+    followHideTimer =
+        setTimeout(() => {
+
+            center.classList.remove("show");
+
+        }, 5000);
+}
+
+
+/* =========================================================
+   الاتصال بأحداث المتابعة
+========================================================= */
+
+function connectFollowEvents() {
+
+    if (followEventSource) {
+
+        followEventSource.close();
+
+        followEventSource = null;
+    }
+
+
+    /*
+     * نستخدم SSE نفسه.
+     */
+
+    followEventSource =
+        new EventSource(
+            "/api/connection/events"
+        );
+
+
+    followEventSource.addEventListener(
+        "follow",
+        event => {
+
+            try {
+
+                const follow =
+                    JSON.parse(event.data);
+
+
+                console.log(
+                    "S-LIVE FOLLOW:",
+                    follow
+                );
+
+
+                showFollow(follow);
+
+            } catch (error) {
+
+                console.error(
+                    "S-LIVE follow parse error:",
+                    error
+                );
+
+            }
+
+        }
+    );
+
+
+    followEventSource.onerror = () => {
+
+        console.warn(
+            "S-LIVE: Follow SSE connection lost"
+        );
+
+    };
+}
+
+
+/* =========================================================
+   تشغيل Home
+========================================================= */
 
 function initHome() {
 
-    loadRoseEffect();
-    loadRoseScript();
+    console.log(
+        "S-LIVE HOME JS loaded"
+    );
+
 
     /*
-     * ننتظر تحميل rose.js
-     * قبل استقبال الهدايا.
+     * تحميل المؤثرات
      */
+
+    loadRoseEffect();
+
+    loadFollowEffect();
+
+
+    /*
+     * ننتظر قليلًا حتى يتم تحميل
+     * ملفات المؤثرات.
+     */
+
     setTimeout(() => {
 
         connectGiftEvents();
 
-    }, 100);
+        connectFollowEvents();
 
+    }, 300);
 }
 
 
-initHome();
+/* =========================================================
+   تشغيل الصفحة
+========================================================= */
+
+initHome(); 
