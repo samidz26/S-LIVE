@@ -4,11 +4,16 @@ window.EffectsTestMenu = (() => {
 
     let menu = null;
 
+
     function create() {
 
+        /*
+         * منع إنشاء القائمة أكثر من مرة
+         */
         if (menu) {
             return;
         }
+
 
         /*
          * القائمة تظهر في Settings فقط
@@ -17,6 +22,7 @@ window.EffectsTestMenu = (() => {
             document.querySelector(".settings-page");
 
         if (!settingsPage) {
+
             console.warn(
                 "S-LIVE: .settings-page not found"
             );
@@ -24,13 +30,20 @@ window.EffectsTestMenu = (() => {
             return;
         }
 
+
+        /*
+         * إنشاء القائمة
+         */
         menu =
             document.createElement("div");
 
         menu.className =
             "effects-test-menu";
 
+
         menu.innerHTML = `
+
+            <!-- زر الاختبار -->
 
             <button
                 class="effects-test-button"
@@ -41,9 +54,14 @@ window.EffectsTestMenu = (() => {
             </button>
 
 
+            <!-- القائمة الرئيسية -->
+
             <div class="effects-test-dropdown">
 
-                <!-- الهدايا -->
+
+                <!-- =========================
+                     الهدايا
+                     ========================= -->
 
                 <button
                     class="effects-test-item"
@@ -64,43 +82,75 @@ window.EffectsTestMenu = (() => {
                 </button>
 
 
-                <!-- قائمة الهدايا الفرعية -->
+                <!-- =========================
+                     قائمة الهدايا الفرعية
+                     ========================= -->
 
                 <div class="effects-test-submenu">
+
+
+                    <!-- وردة -->
 
                     <button
                         class="effects-test-gift"
                         type="button"
                         data-gift="rose"
                     >
-                        <span>🌹</span>
-                        <span>وردة</span>
+
+                        <span>
+                            🌹
+                        </span>
+
+                        <span>
+                            وردة
+                        </span>
+
                     </button>
 
+
+                    <!-- قلب -->
 
                     <button
                         class="effects-test-gift"
                         type="button"
                         data-gift="heart"
                     >
-                        <span>❤️</span>
-                        <span>قلب</span>
+
+                        <span>
+                            ❤️
+                        </span>
+
+                        <span>
+                            قلب
+                        </span>
+
                     </button>
 
+
+                    <!-- دونت -->
 
                     <button
                         class="effects-test-gift"
                         type="button"
                         data-gift="donut"
                     >
-                        <span>🍩</span>
-                        <span>دونت</span>
+
+                        <span>
+                            🍩
+                        </span>
+
+                        <span>
+                            دونت
+                        </span>
+
                     </button>
 
                 </div>
 
 
-                <!-- متابعة -->
+                <!-- =========================
+                     متابعة
+                     ========================= -->
 
                 <button
                     class="effects-test-item"
@@ -121,7 +171,9 @@ window.EffectsTestMenu = (() => {
                 </button>
 
 
-                <!-- اشتراك -->
+                <!-- =========================
+                     اشتراك
+                     ========================= -->
 
                 <button
                     class="effects-test-item"
@@ -142,7 +194,9 @@ window.EffectsTestMenu = (() => {
                 </button>
 
 
-                <!-- تكبيس -->
+                <!-- =========================
+                     تكبيس
+                     ========================= -->
 
                 <button
                     class="effects-test-item"
@@ -162,11 +216,20 @@ window.EffectsTestMenu = (() => {
 
                 </button>
 
+
             </div>
         `;
 
+
+        /*
+         * إضافة القائمة إلى Settings
+         */
         settingsPage.appendChild(menu);
 
+
+        /*
+         * تشغيل الأحداث
+         */
         setupEvents();
     }
 
@@ -178,15 +241,18 @@ window.EffectsTestMenu = (() => {
                 ".effects-test-button"
             );
 
+
         const dropdown =
             menu.querySelector(
                 ".effects-test-dropdown"
             );
 
+
         const giftsButton =
             menu.querySelector(
                 '[data-action="gifts"]'
             );
+
 
         const giftsSubmenu =
             menu.querySelector(
@@ -195,7 +261,9 @@ window.EffectsTestMenu = (() => {
 
 
         /*
-         * فتح القائمة الرئيسية
+         * ==========================================
+         * زر ⚡
+         * ==========================================
          */
 
         button.addEventListener(
@@ -204,9 +272,16 @@ window.EffectsTestMenu = (() => {
 
                 event.stopPropagation();
 
+
                 dropdown.classList.toggle(
                     "open"
                 );
+
+
+                /*
+                 * عند فتح القائمة الرئيسية
+                 * نخفي قائمة الهدايا
+                 */
 
                 giftsSubmenu.classList.remove(
                     "open"
@@ -216,7 +291,9 @@ window.EffectsTestMenu = (() => {
 
 
         /*
-         * فتح قائمة الهدايا
+         * ==========================================
+         * زر الهدايا
+         * ==========================================
          */
 
         giftsButton.addEventListener(
@@ -224,6 +301,7 @@ window.EffectsTestMenu = (() => {
             event => {
 
                 event.stopPropagation();
+
 
                 giftsSubmenu.classList.toggle(
                     "open"
@@ -233,13 +311,16 @@ window.EffectsTestMenu = (() => {
 
 
         /*
-         * اختيار الهدية
+         * ==========================================
+         * أزرار الهدايا
+         * ==========================================
          */
 
         const giftButtons =
             menu.querySelectorAll(
                 ".effects-test-gift"
             );
+
 
         giftButtons.forEach(
             giftButton => {
@@ -250,8 +331,10 @@ window.EffectsTestMenu = (() => {
 
                         event.stopPropagation();
 
+
                         const gift =
                             giftButton.dataset.gift;
+
 
                         handleGift(gift);
                     }
@@ -261,26 +344,67 @@ window.EffectsTestMenu = (() => {
 
 
         /*
-         * إغلاق القائمة عند الضغط خارجها
+         * ==========================================
+         * أزرار التفاعلات
+         * ==========================================
          */
 
-        document.addEventListener(
-            "click",
-            () => {
+        const actionButtons =
+            menu.querySelectorAll(
+                ".effects-test-item[data-action]"
+            );
 
-                dropdown.classList.remove(
-                    "open"
-                );
 
-                giftsSubmenu.classList.remove(
-                    "open"
+        actionButtons.forEach(
+            actionButton => {
+
+                actionButton.addEventListener(
+                    "click",
+                    event => {
+
+                        event.stopPropagation();
+
+
+                        const action =
+                            actionButton.dataset.action;
+
+
+                        /*
+                         * الهدايا لها معالجة خاصة
+                         */
+                        if (action === "gifts") {
+
+                            return;
+                        }
+
+
+                        handleAction(action);
+                    }
                 );
             }
         );
 
 
         /*
-         * منع الإغلاق عند الضغط داخل القائمة
+         * ==========================================
+         * الضغط خارج القائمة
+         * ==========================================
+         */
+
+        document.addEventListener(
+            "click",
+            () => {
+
+                closeMenu();
+
+            }
+        );
+
+
+        /*
+         * ==========================================
+         * منع إغلاق القائمة عند الضغط داخلها
+         * ==========================================
          */
 
         dropdown.addEventListener(
@@ -294,6 +418,12 @@ window.EffectsTestMenu = (() => {
     }
 
 
+    /*
+     * ==========================================
+     * التعامل مع الهدايا
+     * ==========================================
+     */
+
     function handleGift(gift) {
 
         console.log(
@@ -301,6 +431,10 @@ window.EffectsTestMenu = (() => {
             gift
         );
 
+
+        /*
+         * الوردة
+         */
 
         if (gift === "rose") {
 
@@ -311,6 +445,10 @@ window.EffectsTestMenu = (() => {
         }
 
 
+        /*
+         * القلب
+         */
+
         if (gift === "heart") {
 
             console.log(
@@ -319,6 +457,10 @@ window.EffectsTestMenu = (() => {
 
         }
 
+
+        /*
+         * الدونت
+         */
 
         if (gift === "donut") {
 
@@ -330,8 +472,148 @@ window.EffectsTestMenu = (() => {
     }
 
 
+    /*
+     * ==========================================
+     * التعامل مع التفاعلات
+     * ==========================================
+     */
+
+    function handleAction(action) {
+
+        console.log(
+            "S-LIVE TEST ACTION:",
+            action
+        );
+
+
+        /*
+         * ==========================================
+         * متابعة
+         * ==========================================
+         */
+
+        if (action === "follow") {
+
+            /*
+             * إغلاق القائمة فورًا
+             */
+
+            closeMenu();
+
+
+            /*
+             * تشغيل مؤثر المتابعة
+             */
+
+            if (
+                window.FollowEffect &&
+                typeof window.FollowEffect.play === "function"
+            ) {
+
+                window.FollowEffect.play();
+
+            } else {
+
+                console.warn(
+                    "S-LIVE: FollowEffect not loaded"
+                );
+            }
+
+            return;
+        }
+
+
+        /*
+         * ==========================================
+         * اشتراك
+         * ==========================================
+         */
+
+        if (action === "subscribe") {
+
+            closeMenu();
+
+            console.log(
+                "S-LIVE: Subscribe effect not implemented yet"
+            );
+
+            return;
+        }
+
+
+        /*
+         * ==========================================
+         * تكبيس
+         * ==========================================
+         */
+
+        if (action === "like") {
+
+            closeMenu();
+
+            console.log(
+                "S-LIVE: Like effect not implemented yet"
+            );
+
+            return;
+        }
+    }
+
+
+    /*
+     * ==========================================
+     * إغلاق القائمة
+     * ==========================================
+     */
+
+    function closeMenu() {
+
+        if (!menu) {
+            return;
+        }
+
+
+        const dropdown =
+            menu.querySelector(
+                ".effects-test-dropdown"
+            );
+
+
+        const giftsSubmenu =
+            menu.querySelector(
+                ".effects-test-submenu"
+            );
+
+
+        if (dropdown) {
+
+            dropdown.classList.remove(
+                "open"
+            );
+        }
+
+
+        if (giftsSubmenu) {
+
+            giftsSubmenu.classList.remove(
+                "open"
+            );
+        }
+    }
+
+
+    /*
+     * ==========================================
+     * API
+     * ==========================================
+     */
+
     return {
-        create
+
+        create,
+
+        close: closeMenu
+
     };
 
-})(); 
+})();
