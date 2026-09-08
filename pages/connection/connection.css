@@ -1,6 +1,6 @@
 /* =========================================
-   S-LIVE - CONNECTION PAGE
-   هذا الملف خاص بصفحة الاتصال فقط
+   S-LIVE — OWL LUXURY
+   CONNECTION PAGE
 ========================================= */
 
 .connection-page {
@@ -13,75 +13,81 @@
     justify-content: center;
 
     padding: 25px;
+    box-sizing: border-box;
 
-    color: #ffffff;
-
-    font-family:
-        Arial,
-        Tahoma,
-        sans-serif;
+    color: #fff;
+    font-family: Arial, Tahoma, sans-serif;
 
     position: relative;
 }
 
 
 /* =========================================
-   أيقونة الاتصال
+   OWL ICON
 ========================================= */
 
 .connection-icon {
-    width: 70px;
-    height: 70px;
+    width: 82px;
+    height: 82px;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    font-size: 34px;
+    font-size: 43px;
 
-    border: 1px solid rgba(245, 158, 11, 0.7);
-    border-radius: 20px;
+    border: 1px solid rgba(212, 175, 55, 0.8);
+    border-radius: 24px;
 
-    background: rgba(245, 158, 11, 0.08);
+    background:
+        radial-gradient(
+            circle,
+            rgba(212, 175, 55, 0.16),
+            rgba(38, 20, 58, 0.65)
+        );
 
     box-shadow:
-        0 0 15px rgba(245, 158, 11, 0.25),
-        inset 0 0 12px rgba(245, 158, 11, 0.08);
+        0 0 12px rgba(212, 175, 55, 0.25),
+        0 0 30px rgba(212, 175, 55, 0.12),
+        inset 0 0 18px rgba(212, 175, 55, 0.08);
 
-    margin-bottom: 15px;
+    margin-bottom: 17px;
+
+    animation: owlGlow 3s ease-in-out infinite;
 }
 
 
 /* =========================================
-   العنوان
+   TITLE
 ========================================= */
 
 .connection-page h1 {
-    font-size: 28px;
+    margin: 0 0 5px;
 
-    letter-spacing: 2px;
+    font-size: 29px;
+    font-weight: 700;
 
-    margin-bottom: 5px;
+    letter-spacing: 3px;
 
-    color: #f59e0b;
+    color: #f5d76e;
 
     text-shadow:
-        0 0 5px rgba(245, 158, 11, 0.7),
-        0 0 15px rgba(245, 158, 11, 0.4);
+        0 0 6px rgba(245, 215, 110, 0.65),
+        0 0 18px rgba(212, 175, 55, 0.3);
 }
 
 
 .connection-title {
-    font-size: 15px;
+    margin: 0 0 28px;
 
-    color: #cbd5e1;
+    font-size: 14px;
 
-    margin-bottom: 25px;
+    color: #c9c3d3;
 }
 
 
 /* =========================================
-   مجموعة الإدخال
+   INPUT
 ========================================= */
 
 .input-group {
@@ -100,7 +106,7 @@
 .input-group label {
     font-size: 13px;
 
-    color: #94a3b8;
+    color: #aaa1b7;
 
     text-align: right;
 }
@@ -111,15 +117,21 @@
     height: 48px;
 
     padding: 0 15px;
+    box-sizing: border-box;
 
-    border: 1px solid rgba(245, 158, 11, 0.45);
-    border-radius: 12px;
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 13px;
 
     outline: none;
 
-    background: rgba(15, 23, 42, 0.85);
+    background:
+        linear-gradient(
+            135deg,
+            rgba(25, 16, 39, 0.96),
+            rgba(13, 10, 21, 0.96)
+        );
 
-    color: #ffffff;
+    color: #fff;
 
     font-size: 15px;
 
@@ -128,50 +140,47 @@
     transition:
         border-color 0.25s ease,
         box-shadow 0.25s ease,
-        background 0.25s ease;
+        transform 0.25s ease;
 }
 
 
 .input-group input::placeholder {
-    color: #64748b;
+    color: #655d70;
 }
 
 
 .input-group input:focus {
-    border-color: #f59e0b;
-
-    background: rgba(15, 23, 42, 0.95);
+    border-color: #d4af37;
 
     box-shadow:
-        0 0 8px rgba(245, 158, 11, 0.35),
-        inset 0 0 8px rgba(245, 158, 11, 0.05);
+        0 0 8px rgba(212, 175, 55, 0.35),
+        0 0 20px rgba(212, 175, 55, 0.08);
+
+    transform: translateY(-1px);
 }
 
 
 /* =========================================
-   زر الاتصال
+   CONNECT BUTTON
 ========================================= */
 
 #connect-btn {
     width: 100%;
     max-width: 290px;
-
     height: 48px;
 
-    border: 1px solid #f59e0b;
-    border-radius: 12px;
+    border: 1px solid #d4af37;
+    border-radius: 13px;
 
     background:
         linear-gradient(
             135deg,
-            #451a03,
-            #78350f,
-            #451a03
+            #24132f,
+            #4a275e,
+            #24132f
         );
 
-    background-size: 200% 200%;
-
-    color: #ffffff;
+    color: #f8e7a5;
 
     font-size: 15px;
     font-weight: bold;
@@ -179,20 +188,23 @@
     cursor: pointer;
 
     box-shadow:
-        0 0 10px rgba(245, 158, 11, 0.25);
+        0 0 10px rgba(212, 175, 55, 0.2);
 
     transition:
         transform 0.2s ease,
-        box-shadow 0.2s ease;
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
 }
 
 
 #connect-btn:hover {
     transform: translateY(-1px);
 
+    border-color: #f5d76e;
+
     box-shadow:
-        0 0 15px rgba(245, 158, 11, 0.55),
-        0 0 30px rgba(245, 158, 11, 0.15);
+        0 0 15px rgba(212, 175, 55, 0.5),
+        0 0 28px rgba(212, 175, 55, 0.12);
 }
 
 
@@ -202,11 +214,13 @@
 
 
 /* =========================================
-   حالة الاتصال
+   CONNECTION STATUS
 ========================================= */
 
 .status {
     margin-top: 20px;
+
+    min-height: 24px;
 
     display: flex;
     align-items: center;
@@ -214,9 +228,7 @@
 
     gap: 8px;
 
-    min-height: 24px;
-
-    color: #94a3b8;
+    color: #92899e;
 
     font-size: 13px;
 }
@@ -228,10 +240,10 @@
 
     border-radius: 50%;
 
-    background: #64748b;
+    background: #625b69;
 
     box-shadow:
-        0 0 5px rgba(100, 116, 139, 0.5);
+        0 0 5px rgba(98, 91, 105, 0.5);
 
     transition:
         background 0.25s ease,
@@ -239,19 +251,19 @@
 }
 
 
-/* جاري الاتصال */
+/* Connecting */
 
 .status-dot.connecting {
-    background: #f59e0b;
+    background: #d4af37;
 
     box-shadow:
-        0 0 8px rgba(245, 158, 11, 0.9);
+        0 0 9px rgba(212, 175, 55, 0.9);
 
     animation: connectionPulse 1s infinite;
 }
 
 
-/* خطأ */
+/* Error */
 
 .status-dot.error {
     background: #ef4444;
@@ -261,7 +273,7 @@
 }
 
 
-/* نجاح الاتصال */
+/* Connected */
 
 .status-dot.connected {
     background: #22c55e;
@@ -270,6 +282,10 @@
         0 0 8px rgba(34, 197, 94, 0.9);
 }
 
+
+/* =========================================
+   ANIMATIONS
+========================================= */
 
 @keyframes connectionPulse {
 
@@ -286,8 +302,27 @@
 }
 
 
+@keyframes owlGlow {
+
+    0%,
+    100% {
+        box-shadow:
+            0 0 12px rgba(212, 175, 55, 0.22),
+            0 0 30px rgba(212, 175, 55, 0.08),
+            inset 0 0 18px rgba(212, 175, 55, 0.06);
+    }
+
+    50% {
+        box-shadow:
+            0 0 16px rgba(212, 175, 55, 0.4),
+            0 0 36px rgba(212, 175, 55, 0.14),
+            inset 0 0 20px rgba(212, 175, 55, 0.1);
+    }
+}
+
+
 /* =========================================
-   شاشات الهاتف الصغيرة
+   SMALL SCREENS
 ========================================= */
 
 @media (max-height: 600px) {
@@ -297,12 +332,12 @@
     }
 
     .connection-icon {
-        width: 55px;
-        height: 55px;
+        width: 58px;
+        height: 58px;
 
-        font-size: 27px;
+        font-size: 30px;
 
-        margin-bottom: 8px;
+        margin-bottom: 9px;
     }
 
     .connection-page h1 {
@@ -310,7 +345,6 @@
     }
 
     .connection-title {
-        margin-bottom: 15px;
+        margin-bottom: 16px;
     }
-
-  }
+       } 
