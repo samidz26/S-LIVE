@@ -140,50 +140,110 @@ function getFirstUrl(value) {
 ========================================= */
 
 function getBroadcasterProfilePicture(connection) {
+
     try {
+
         const roomInfo =
             connection?.roomInfo;
 
         if (!roomInfo) {
+
             console.log(
                 "S-LIVE: roomInfo not found"
             );
+
             return null;
         }
 
+
+        /*
+         * TikTok يعيد البيانات داخل:
+         *
+         * roomInfo.data
+         *
+         * وليس مباشرة داخل roomInfo
+         */
+
+        const data =
+            roomInfo.data ||
+            roomInfo;
+
+
         const owner =
-            roomInfo.owner ||
-            roomInfo.room?.owner ||
-            roomInfo.anchor ||
-            roomInfo.host ||
-            roomInfo.room?.anchor ||
-            roomInfo.room?.host;
+            data.owner ||
+            data.room?.owner ||
+            data.anchor ||
+            data.host ||
+            data.room?.anchor ||
+            data.room?.host ||
+            data.user ||
+            data.roomInfo?.owner;
+
 
         if (!owner) {
+
             console.log(
                 "S-LIVE: broadcaster owner not found"
             );
+
+            console.log(
+                "S-LIVE DATA KEYS:",
+                Object.keys(data || {})
+            );
+
             return null;
         }
 
+
+        console.log(
+            "S-LIVE OWNER FOUND:",
+            Object.keys(owner)
+        );
+
+
         const possiblePictures = [
+
             owner.avatar_thumb,
+
             owner.avatar_larger,
+
             owner.avatar_medium,
+
+            owner.avatar_small,
+
+            owner.avatar_large,
+
             owner.avatarThumb,
+
             owner.avatarLarger,
+
             owner.avatarMedium,
+
+            owner.avatarSmall,
+
+            owner.avatarLarge,
+
             owner.profilePictureUrl,
+
             owner.profile_picture_url,
-            owner.avatar,
+
             owner.profilePicture,
-            owner.profile_picture
+
+            owner.profile_picture,
+
+            owner.avatar
         ];
 
-        for (const value of possiblePictures) {
-            const url = getFirstUrl(value);
+
+        for (
+            const value of possiblePictures
+        ) {
+
+            const url =
+                getFirstUrl(value);
 
             if (url) {
+
                 console.log(
                     "S-LIVE: broadcaster profile found:",
                     url
@@ -193,14 +253,11 @@ function getBroadcasterProfilePicture(connection) {
             }
         }
 
-        console.log(
-            "S-LIVE: broadcaster avatar fields found, but no URL"
-        );
 
         console.log(
-            "S-LIVE owner keys:",
-            Object.keys(owner)
+            "S-LIVE: owner found but profile URL not found"
         );
+
 
         return null;
 
