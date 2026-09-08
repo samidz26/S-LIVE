@@ -1,1045 +1,475 @@
-(function () {
-    "use strict";
+"use strict";
 
-    console.log("S-LIVE HOME JS loaded");
-
-    let eventSource = null;
-
-    /* =========================================================
-       ACCOUNT
-    ========================================================= */
-
-    const liveAccount =
-        document.getElementById("live-account");
-
-    const accountButton =
-        document.getElementById("live-account-button");
-
-    const disconnectButton =
-        document.getElementById("disconnect-button");
-
-    const homeButton =
-        document.getElementById("home-button");
-
-    const gamesButton =
-        document.getElementById("games-button");
-
-    const settingsButton =
-        document.getElementById("settings-button");
-
-    const liveUsername =
-        document.getElementById("live-username");
-
-    const liveProfileImage =
-        document.getElementById("live-profile-image");
+console.log("S-LIVE HOME JS loaded");
 
 
-    /* =========================================================
-       MEMBER
-    ========================================================= */
+/* =========================================
+   عناصر Home
+========================================= */
 
-    const memberName =
-        document.getElementById("member-name");
+const memberProfile =
+    document.getElementById("member-profile");
 
-    const memberAvatar =
-        document.getElementById("member-avatar");
+const memberName =
+    document.getElementById("member-name");
 
+const memberUsername =
+    document.getElementById("member-username");
 
-    /* =========================================================
-       CENTER EVENT
-    ========================================================= */
-
-    const liveEventCard =
-        document.getElementById("live-event-card");
-
-    const liveEventAvatar =
-        document.getElementById("live-event-avatar");
-
-    const liveEventUsername =
-        document.getElementById("live-event-username");
-
-    const liveEventText =
-        document.getElementById("live-event-text");
+const liveEventCard =
+    document.getElementById("live-event-card");
 
 
-    /* =========================================================
-       EVENT QUEUE
-    ========================================================= */
+const liveEventsCenter =
+    document.getElementById("live-events-center");
 
-    const eventQueue = [];
+const liveEventType =
+    document.getElementById("live-event-type");
 
-    let processingEventQueue = false;
+const liveEventAvatar =
+    document.getElementById("live-event-avatar");
+
+const liveEventUser =
+    document.getElementById("live-event-user");
+
+const liveEventContent =
+    document.getElementById("live-event-content");
+
+const liveEventValue =
+    document.getElementById("live-event-value");
 
 
-    /* =========================================================
-       IMAGE
-    ========================================================= */
+/* =========================================
+   تحويل رابط الصورة إلى Proxy
+========================================= */
 
-    function getImageUrl(url) {
+function getImageUrl(url) {
 
-        if (!url) {
-            return "";
-        }
+    if (!url) {
+        return "";
+    }
 
-        if (
-            url.startsWith("/") ||
-            url.startsWith("data:") ||
-            url.startsWith("blob:")
-        ) {
-            return url;
-        }
+    if (
+        url.startsWith("/api/") ||
+        url.startsWith("data:")
+    ) {
+        return url;
+    }
 
-        return (
-            "/api/connection/proxy-image?url=" +
-            encodeURIComponent(url)
-        );
+    return (
+        "/api/connection/proxy-image?url=" +
+        encodeURIComponent(url)
+    );
+}
+
+
+/* =========================================
+   عرض آخر شخص دخل
+========================================= */
+
+let memberTimer = null;
+
+function showMember(member) {
+
+    if (!member) {
+        return;
+    }
+
+    const nickname =
+        member.nickname ||
+        member.uniqueId ||
+        member.username ||
+        "شخص جديد";
+
+    const username =
+        member.uniqueId
+            ? "@" + member.uniqueId.replace(/^@/, "")
+            : "";
+
+    const profilePicture =
+        member.profilePictureUrl ||
+        member.profilePicture ||
+        member.avatar ||
+        "";
+
+
+    if (memberName) {
+        memberName.textContent = nickname;
+    }
+
+    if (memberUsername) {
+        memberUsername.textContent =
+            username || "عضو جديد في اللايف";
     }
 
 
-    /* =========================================================
-       USER HELPERS
-    ========================================================= */
-
-    function getUsername(user) {
-
-        if (!user) {
-            return "@unknown";
-        }
-
-        return (
-            user.nickname ||
-            user.uniqueId ||
-            user.username ||
-            "@unknown"
-        );
+    if (memberProfile && profilePicture) {
+        memberProfile.src =
+            getImageUrl(profilePicture);
     }
 
 
-    function getProfilePicture(user) {
+    if (liveEventCard) {
 
-        if (!user) {
-            return "";
-        }
+        liveEventCard.classList.add("show");
 
-        return (
-            user.profilePictureUrl ||
-            user.profilePicture ||
-            user.avatar ||
-            ""
-        );
+        clearTimeout(memberTimer);
+
+        memberTimer = setTimeout(() => {
+
+            liveEventCard.classList.remove("show");
+
+        }, 5000);
+    }
+}
+
+
+/* =========================================
+   عرض حدث اللايف
+========================================= */
+
+let eventTimer = null;
+
+function playLiveEvent(event) {
+
+    if (!event || !liveEventsCenter) {
+        return;
     }
 
 
-    /* =========================================================
-       ACCOUNT SETUP
-    ========================================================= */
-
-    function setupAccount() {
-
-        const username =
-            localStorage.getItem(
-                "s_live_username"
-            );
-
-        const profilePicture =
-            localStorage.getItem(
-                "s_live_profile_picture"
-            );
+    const type =
+        event.type ||
+        event.eventType ||
+        "";
 
 
-        /* Username */
-
-        if (liveUsername) {
-
-            liveUsername.textContent =
-                username
-                    ? "@" + username.replace(/^@/, "")
-                    : "@username";
-        }
+    const user =
+        event.nickname ||
+        event.uniqueId ||
+        event.username ||
+        "مستخدم";
 
 
-        /* Profile picture */
-
-        if (
-            liveProfileImage &&
-            profilePicture
-        ) {
-
-            liveProfileImage.src =
-                getImageUrl(profilePicture);
-
-            liveProfileImage.onerror =
-                function () {
-
-                    console.warn(
-                        "Failed to load live profile image"
-                    );
-
-                    this.removeAttribute("src");
-                };
-        }
+    const content =
+        event.content ||
+        event.message ||
+        event.text ||
+        "";
 
 
-        /* =====================================================
-           ACCOUNT DROPDOWN
-        ===================================================== */
-
-        if (accountButton) {
-
-            accountButton.addEventListener(
-                "click",
-                function (event) {
-
-                    event.preventDefault();
-                    event.stopPropagation();
-
-                    if (!liveAccount) {
-                        return;
-                    }
-
-                    const isOpen =
-                        liveAccount.classList.contains(
-                            "open"
-                        );
-
-                    liveAccount.classList.toggle(
-                        "open",
-                        !isOpen
-                    );
-
-                    accountButton.setAttribute(
-                        "aria-expanded",
-                        String(!isOpen)
-                    );
-                }
-            );
-        }
+    const value =
+        event.value ||
+        event.amount ||
+        event.count ||
+        "";
 
 
-        /* =====================================================
-           HOME
-        ===================================================== */
-
-        if (homeButton) {
-
-            homeButton.addEventListener(
-                "click",
-                function (event) {
-
-                    event.preventDefault();
-                    event.stopPropagation();
-
-                    closeAccountMenu();
-
-                    if (
-                        window.SLive &&
-                        typeof window.SLive.loadPage ===
-                            "function"
-                    ) {
-
-                        window.SLive.loadPage(
-                            "home"
-                        );
-                    }
-                }
-            );
-        }
+    const profilePicture =
+        event.profilePictureUrl ||
+        event.profilePicture ||
+        event.avatar ||
+        "";
 
 
-        /* =====================================================
-           GAMES
-        ===================================================== */
+    /* نوع الحدث */
 
-        if (gamesButton) {
+    if (liveEventType) {
 
-            gamesButton.addEventListener(
-                "click",
-                function (event) {
+        const eventLabels = {
 
-                    event.preventDefault();
-                    event.stopPropagation();
+            member: "👋 دخل اللايف",
 
-                    closeAccountMenu();
+            gift: "🎁 دعم جديد",
 
-                    if (
-                        window.SLive &&
-                        typeof window.SLive.loadPage ===
-                            "function"
-                    ) {
+            follow: "➕ متابعة جديدة",
 
-                        window.SLive.loadPage(
-                            "games"
-                        );
-                    }
-                }
-            );
-        }
+            subscribe: "🔔 اشتراك جديد",
 
+            share: "🔄 مشاركة",
 
-        /* =====================================================
-           SETTINGS
-        ===================================================== */
+            like: "❤️ تكبيس",
 
-        if (settingsButton) {
+            comment: "💬 تعليق"
 
-            settingsButton.addEventListener(
-                "click",
-                function (event) {
+        };
 
-                    event.preventDefault();
-                    event.stopPropagation();
-
-                    closeAccountMenu();
-
-                    if (
-                        window.SLive &&
-                        typeof window.SLive.loadPage ===
-                            "function"
-                    ) {
-
-                        window.SLive.loadPage(
-                            "settings"
-                        );
-                    }
-                }
-            );
-        }
-
-
-        /* =====================================================
-           DISCONNECT
-        ===================================================== */
-
-        if (disconnectButton) {
-
-            disconnectButton.addEventListener(
-                "click",
-                function (event) {
-
-                    event.preventDefault();
-                    event.stopPropagation();
-
-                    disconnectLive();
-                }
-            );
-        }
-
-
-        /* =====================================================
-           CLOSE DROPDOWN WHEN CLICKING OUTSIDE
-        ===================================================== */
-
-        document.addEventListener(
-            "click",
-            handleOutsideAccountClick
-        );
+        liveEventType.textContent =
+            eventLabels[type] ||
+            "✨ حدث جديد";
     }
 
 
-    function closeAccountMenu() {
+    /* الصورة */
 
-        if (liveAccount) {
+    if (
+        liveEventAvatar &&
+        profilePicture
+    ) {
 
-            liveAccount.classList.remove(
-                "open"
-            );
-        }
-
-        if (accountButton) {
-
-            accountButton.setAttribute(
-                "aria-expanded",
-                "false"
-            );
-        }
+        liveEventAvatar.src =
+            getImageUrl(profilePicture);
     }
 
 
-    function handleOutsideAccountClick(event) {
+    /* الاسم */
 
-        if (!liveAccount) {
-            return;
-        }
-
-        if (
-            !liveAccount.contains(
-                event.target
-            )
-        ) {
-
-            closeAccountMenu();
-        }
+    if (liveEventUser) {
+        liveEventUser.textContent = user;
     }
 
 
-    /* =========================================================
-       DISCONNECT
-    ========================================================= */
+    /* المحتوى */
 
-    async function disconnectLive() {
+    if (liveEventContent) {
+        liveEventContent.textContent =
+            content;
+    }
 
-        closeAccountMenu();
+
+    /* القيمة */
+
+    if (liveEventValue) {
+
+        liveEventValue.textContent =
+            value
+                ? String(value)
+                : "";
+    }
+
+
+    /* إظهار */
+
+    liveEventsCenter.classList.add("show");
+
+
+    clearTimeout(eventTimer);
+
+    eventTimer = setTimeout(() => {
+
+        liveEventsCenter.classList.remove("show");
+
+    }, 4000);
+}
+
+
+/* =========================================
+   استقبال أحداث TikTok عبر SSE
+========================================= */
+
+let eventSource = null;
+
+
+function connectEvents() {
+
+    if (eventSource) {
 
         try {
-
-            await fetch(
-                "/api/connection/disconnect",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    }
-                }
-            );
-
+            eventSource.close();
         } catch (error) {
-
-            console.error(
-                "Disconnect error:",
+            console.warn(
+                "SSE close error:",
                 error
             );
         }
 
-
-        clearSession();
-
-
-        if (
-            window.SLive &&
-            typeof window.SLive.loadPage ===
-                "function"
-        ) {
-
-            window.SLive.loadPage(
-                "connection"
-            );
-
-        } else {
-
-            window.location.reload();
-        }
+        eventSource = null;
     }
 
 
-    /* =========================================================
-       CLEAR SESSION
-    ========================================================= */
-
-    function clearSession() {
-
-        localStorage.removeItem(
-            "s_live_username"
+    eventSource =
+        new EventSource(
+            "/api/connection/events"
         );
 
-        localStorage.removeItem(
-            "s_live_connected"
-        );
 
-        localStorage.removeItem(
-            "s_live_room_id"
-        );
+    /* =====================================
+       دخول شخص
+    ===================================== */
 
-        localStorage.removeItem(
-            "s_live_profile_picture"
-        );
-    }
-
-
-    /* =========================================================
-       SHOW MEMBER
-    ========================================================= */
-
-    function showMember(user) {
-
-        if (!memberName) {
-            return;
-        }
-
-        const username =
-            getUsername(user);
-
-        memberName.textContent =
-            username;
-
-
-        if (memberAvatar) {
-
-            const image =
-                getProfilePicture(user);
-
-            if (image) {
-
-                memberAvatar.src =
-                    getImageUrl(image);
-            }
-        }
-    }
-
-
-    /* =========================================================
-       EVENT QUEUE
-    ========================================================= */
-
-    function queueEvent(event) {
-
-        eventQueue.push(event);
-
-        processEventQueue();
-    }
-
-
-    async function processEventQueue() {
-
-        if (processingEventQueue) {
-            return;
-        }
-
-        processingEventQueue = true;
-
-
-        while (eventQueue.length > 0) {
-
-            const event =
-                eventQueue.shift();
+    eventSource.addEventListener(
+        "member",
+        function (event) {
 
             try {
 
-                await playLiveEvent(
-                    event
+                const data =
+                    JSON.parse(event.data);
+
+                console.log(
+                    "MEMBER:",
+                    data
                 );
+
+                showMember(data);
 
             } catch (error) {
 
                 console.error(
-                    "Event error:",
+                    "MEMBER parse error:",
                     error
                 );
             }
         }
+    );
 
 
-        processingEventQueue = false;
-    }
+    /* =====================================
+       دعم / هدية
+    ===================================== */
 
-
-    /* =========================================================
-       EVENT DURATION
-    ========================================================= */
-
-    function getEventDuration(event) {
-
-        if (!event) {
-            return 2500;
-        }
-
-        if (
-            event.type === "gift"
-        ) {
-            return 3500;
-        }
-
-        if (
-            event.type === "subscribe"
-        ) {
-            return 3000;
-        }
-
-        if (
-            event.type === "follow"
-        ) {
-            return 2500;
-        }
-
-        if (
-            event.type === "member"
-        ) {
-            return 2200;
-        }
-
-        return 2500;
-    }
-
-
-    /* =========================================================
-       GIFT TIER
-    ========================================================= */
-
-    function getGiftTier(event) {
-
-        const diamondCount =
-            Number(
-                event?.diamondCount ||
-                event?.diamondCountValue ||
-                event?.repeatCount ||
-                0
-            );
-
-
-        if (diamondCount >= 1000) {
-            return "legendary";
-        }
-
-        if (diamondCount >= 500) {
-            return "epic";
-        }
-
-        if (diamondCount >= 100) {
-            return "rare";
-        }
-
-        return "normal";
-    }
-
-
-    /* =========================================================
-       PLAY LIVE EVENT
-    ========================================================= */
-
-    function playLiveEvent(event) {
-
-        return new Promise(
-            function (resolve) {
-
-                if (!liveEventCard) {
-
-                    resolve();
-                    return;
-                }
-
-
-                const username =
-                    getUsername(
-                        event?.user ||
-                        event
-                    );
-
-
-                const profilePicture =
-                    getProfilePicture(
-                        event?.user ||
-                        event
-                    );
-
-
-                if (liveEventUsername) {
-
-                    liveEventUsername.textContent =
-                        username;
-                }
-
-
-                if (liveEventAvatar) {
-
-                    if (profilePicture) {
-
-                        liveEventAvatar.src =
-                            getImageUrl(
-                                profilePicture
-                            );
-
-                    } else {
-
-                        liveEventAvatar.removeAttribute(
-                            "src"
-                        );
-                    }
-                }
-
-
-                if (liveEventText) {
-
-                    let text =
-                        "نورت اللايف ❤️";
-
-
-                    switch (event?.type) {
-
-                        case "member":
-                            text =
-                                "نورت اللايف ❤️";
-                            break;
-
-                        case "follow":
-                            text =
-                                "شكراً على المتابعة 💛";
-                            break;
-
-                        case "subscribe":
-                            text =
-                                "شكراً على الاشتراك 👑";
-                            break;
-
-                        case "gift":
-                            text =
-                                "شكراً على الهدية 🎁";
-                            break;
-
-                        case "like":
-                            text =
-                                "شكراً على التكبيس ❤️";
-                            break;
-
-                        case "share":
-                            text =
-                                "شكراً على المشاركة 🔥";
-                            break;
-
-                        default:
-                            text =
-                                "نورت اللايف ❤️";
-                    }
-
-
-                    liveEventText.textContent =
-                        text;
-                }
-
-
-                /* Gift class */
-
-                liveEventCard.classList.remove(
-                    "gift-normal",
-                    "gift-rare",
-                    "gift-epic",
-                    "gift-legendary"
-                );
-
-
-                if (
-                    event?.type === "gift"
-                ) {
-
-                    liveEventCard.classList.add(
-                        "gift-" +
-                        getGiftTier(event)
-                    );
-                }
-
-
-                /* Show */
-
-                liveEventCard.classList.add(
-                    "show"
-                );
-
-
-                const duration =
-                    getEventDuration(
-                        event
-                    );
-
-
-                setTimeout(
-                    function () {
-
-                        hideLiveEvent();
-
-                        resolve();
-
-                    },
-                    duration
-                );
-            }
-        );
-    }
-
-
-    /* =========================================================
-       HIDE LIVE EVENT
-    ========================================================= */
-
-    function hideLiveEvent() {
-
-        if (!liveEventCard) {
-            return;
-        }
-
-        liveEventCard.classList.remove(
-            "show"
-        );
-    }
-
-
-    /* =========================================================
-       EVENT STYLE
-    ========================================================= */
-
-    function liveEventCenterStyle(
-        event
-    ) {
-
-        if (!liveEventCard) {
-            return;
-        }
-
-        liveEventCard.dataset.type =
-            event?.type || "";
-    }
-
-
-    /* =========================================================
-       CONNECT SSE EVENTS
-    ========================================================= */
-
-    function connectEvents() {
-
-        if (eventSource) {
+    eventSource.addEventListener(
+        "gift",
+        function (event) {
 
             try {
-                eventSource.close();
+
+                const data =
+                    JSON.parse(event.data);
+
+                console.log(
+                    "GIFT:",
+                    data
+                );
+
+                playLiveEvent({
+                    ...data,
+                    type: "gift"
+                });
+
             } catch (error) {
-                console.warn(error);
-            }
 
-            eventSource = null;
-        }
-
-
-        eventSource =
-            new EventSource(
-                "/api/connection/events"
-            );
-
-
-        /* =====================================================
-           MEMBER
-        ===================================================== */
-
-        eventSource.addEventListener(
-            "member",
-            function (event) {
-
-                try {
-
-                    const data =
-                        JSON.parse(
-                            event.data
-                        );
-
-                    console.log(
-                        "MEMBER:",
-                        data
-                    );
-
-                    showMember(
-                        data.user ||
-                        data
-                    );
-
-                    queueEvent({
-                        type: "member",
-                        user:
-                            data.user ||
-                            data
-                    });
-
-                } catch (error) {
-
-                    console.error(
-                        "Member event error:",
-                        error
-                    );
-                }
-            }
-        );
-
-
-        /* =====================================================
-           GIFT
-        ===================================================== */
-
-        eventSource.addEventListener(
-            "gift",
-            function (event) {
-
-                try {
-
-                    const data =
-                        JSON.parse(
-                            event.data
-                        );
-
-                    console.log(
-                        "GIFT:",
-                        data
-                    );
-
-                    liveEventCenterStyle(
-                        data
-                    );
-
-                    queueEvent({
-                        type: "gift",
-                        ...data
-                    });
-
-                } catch (error) {
-
-                    console.error(
-                        "Gift event error:",
-                        error
-                    );
-                }
-            }
-        );
-
-
-        /* =====================================================
-           FOLLOW
-        ===================================================== */
-
-        eventSource.addEventListener(
-            "follow",
-            function (event) {
-
-                try {
-
-                    const data =
-                        JSON.parse(
-                            event.data
-                        );
-
-                    console.log(
-                        "FOLLOW:",
-                        data
-                    );
-
-                    queueEvent({
-                        type: "follow",
-                        ...data
-                    });
-
-                } catch (error) {
-
-                    console.error(
-                        "Follow event error:",
-                        error
-                    );
-                }
-            }
-        );
-
-
-        /* =====================================================
-           SUBSCRIBE
-        ===================================================== */
-
-        eventSource.addEventListener(
-            "subscribe",
-            function (event) {
-
-                try {
-
-                    const data =
-                        JSON.parse(
-                            event.data
-                        );
-
-                    console.log(
-                        "SUBSCRIBE:",
-                        data
-                    );
-
-                    queueEvent({
-                        type: "subscribe",
-                        ...data
-                    });
-
-                } catch (error) {
-
-                    console.error(
-                        "Subscribe event error:",
-                        error
-                    );
-                }
-            }
-        );
-
-
-        /* =====================================================
-           OTHER EVENTS
-        ===================================================== */
-
-        eventSource.onmessage =
-            function (event) {
-
-                try {
-
-                    const data =
-                        JSON.parse(
-                            event.data
-                        );
-
-                    console.log(
-                        "SSE EVENT:",
-                        data
-                    );
-
-                } catch (error) {
-
-                    console.log(
-                        "SSE MESSAGE:",
-                        event.data
-                    );
-                }
-            };
-
-
-        /* =====================================================
-           ERROR
-        ===================================================== */
-
-        eventSource.onerror =
-            function (error) {
-
-                console.warn(
-                    "SSE connection error:",
+                console.error(
+                    "GIFT parse error:",
                     error
                 );
-            };
-    }
+            }
+        }
+    );
 
 
-    /* =========================================================
-       CLEANUP
-    ========================================================= */
+    /* =====================================
+       متابعة
+    ===================================== */
 
-    function cleanup() {
-
-        if (eventSource) {
+    eventSource.addEventListener(
+        "follow",
+        function (event) {
 
             try {
-                eventSource.close();
+
+                const data =
+                    JSON.parse(event.data);
+
+                console.log(
+                    "FOLLOW:",
+                    data
+                );
+
+                playLiveEvent({
+                    ...data,
+                    type: "follow"
+                });
+
             } catch (error) {
-                console.warn(error);
+
+                console.error(
+                    "FOLLOW parse error:",
+                    error
+                );
             }
-
-            eventSource = null;
         }
+    );
 
 
-        document.removeEventListener(
-            "click",
-            handleOutsideAccountClick
+    /* =====================================
+       اشتراك
+    ===================================== */
+
+    eventSource.addEventListener(
+        "subscribe",
+        function (event) {
+
+            try {
+
+                const data =
+                    JSON.parse(event.data);
+
+                console.log(
+                    "SUBSCRIBE:",
+                    data
+                );
+
+                playLiveEvent({
+                    ...data,
+                    type: "subscribe"
+                });
+
+            } catch (error) {
+
+                console.error(
+                    "SUBSCRIBE parse error:",
+                    error
+                );
+            }
+        }
+    );
+
+
+    /* =====================================
+       اتصال SSE
+    ===================================== */
+
+    eventSource.onopen = function () {
+
+        console.log(
+            "S-LIVE SSE connected"
         );
-    }
+    };
 
 
-    /* =========================================================
-       START
-    ========================================================= */
+    /* =====================================
+       خطأ
+    ===================================== */
 
-    setupAccount();
+    eventSource.onerror = function (error) {
+
+        console.warn(
+            "S-LIVE SSE error:",
+            error
+        );
+    };
+}
+
+
+/* =========================================
+   تشغيل Home
+========================================= */
+
+function initHome() {
+
+    console.log(
+        "S-LIVE HOME initialized"
+    );
 
     connectEvents();
+}
 
 
-    /* =========================================================
-       PAGE CLEANUP FOR S-LIVE SPA
-    ========================================================= */
+/* =========================================
+   منع تشغيل الكود قبل وجود الصفحة
+========================================= */
 
-    window.SLiveHomeCleanup =
-        cleanup;
+if (
+    document.readyState ===
+    "loading"
+) {
 
-})();
+    document.addEventListener(
+        "DOMContentLoaded",
+        initHome
+    );
+
+} else {
+
+    initHome();
+}
